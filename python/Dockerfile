@@ -10,5 +10,7 @@ RUN adduser --disabled-password python && chown -R python:python $HOME
 COPY --chown=python requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY --chown=python . .
+
 USER python
 
