@@ -22,6 +22,7 @@ services:
   
   dockerd:
     image: docker:dind
+    restart: always
     privileged: true
     hostname: "dockerd.outpost"
     ports:
