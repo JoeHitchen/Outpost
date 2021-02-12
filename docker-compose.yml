@@ -13,8 +13,6 @@ services:
     image: registry
     restart: always
     hostname: "registry.outpost"
-    ports:
-      - 80:80
     volumes:
       - registry:/var/lib/registry
     environment:
