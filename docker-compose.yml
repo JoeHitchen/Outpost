@@ -18,6 +18,18 @@ services:
     environment:
       - REGISTRY_HTTP_ADDR=0.0.0.0:80
   
+  registry_ui:
+    image: parabuzzle/craneoperator:latest
+    restart: always
+    ports:
+      - 8000:80
+    environment:
+      - REGISTRY_HOST=registry.outpost
+      - REGISTRY_PORT=80
+      - REGISTRY_PROTOCOL=http
+    depends_on:
+      - registry
+  
   dockerd:
     image: docker:dind
     restart: always
