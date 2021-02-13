@@ -39,8 +39,6 @@ services:
     restart: always
     privileged: true
     hostname: "dockerd.outpost"
-    ports:
-      - 2376:2375
     volumes:
       - ./dockerd/daemon.json:/etc/docker/daemon.json
       - dockerd:/var/lib/docker
