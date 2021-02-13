@@ -26,9 +26,15 @@ def build_and_save(image_name, image_path, build_path):
     with open(image_path, 'wb') as file:
         for chunk in image.save():
             file.write(chunk)
+    
+    return {
+        'name': image_name,
+        'hash': image.id,
+        'hash_short': image.short_id,
+    }
 
 
-def load_and_push(image_name, image_path):
+def load_and_push(image_name, image_path, image_hash):
     print('Loading {} from {} ...'.format(image_name, image_path))
     
     images = docker.from_env().images
@@ -36,6 +42,9 @@ def load_and_push(image_name, image_path):
     
     with open(image_path, 'rb') as file:
         image = images.load(file.read())[0]
+    
+    if image.id != image_hash:
+    	raise ValueError('Loaded image hash does not match expected value')
     
     image.tag(repository = image_name_parts[0], tag = image_name_parts[1])
     

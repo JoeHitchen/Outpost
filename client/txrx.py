@@ -19,7 +19,7 @@ def request_image_transfer(image_name):
     image_short = image_name.split('/')[1]
     image_filename = image_short.replace(':', '.') + '.docker'
      
-    utils.build_and_save(
+    image_meta = utils.build_and_save(
         image_short,
         os.path.join(RX_DATA, image_filename),
         'mock',
@@ -28,6 +28,7 @@ def request_image_transfer(image_name):
     utils.load_and_push(
         image_name,
         os.path.join(RX_DATA, image_filename),
+        image_meta['hash'],
     )
 
 
