@@ -1,18 +1,6 @@
 version: "3.7"
 
 services:
-  python:
-    build: python
-    image: outpost-python
-    environment:
-      - DOCKER_HOST=dockerd.outpost:2375
-      - REGISTRY_HOST=registry.outpost
-      - RX_DATA=/tmp
-    volumes:
-      - rx_data:/tmp
-    depends_on:
-      - dockerd
-  
   client:
     build: client
     image: outpost-client
@@ -21,6 +9,7 @@ services:
       - REGISTRY_HOST=registry.outpost
       - RX_DATA=/tmp
     volumes:
+      - rx_data:/tmp
       - ./client/version_number.txt:/usr/src/app/version_number.txt
     depends_on:
       - dockerd
