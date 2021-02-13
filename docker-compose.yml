@@ -45,9 +45,24 @@ services:
       - dockerd:/var/lib/docker
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
+  
+  queues:
+    image: redis:5-alpine
+    volumes:
+      - queues:/data
+  
+  queue_ui:
+    build: queue_ui
+    image: outpost-queue-ui
+    command: --broker=redis://queues:6379/0
+    ports:
+      - 5555:5555
+    depends_on:
+      - queues
 
 volumes:
   registry:
   dockerd:
   rx_data:
+  queues:
 
