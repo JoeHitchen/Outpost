@@ -16,7 +16,7 @@ services:
   registry:
     image: registry
     restart: always
-    hostname: "registry.outpost"
+    hostname: registry.outpost
     volumes:
       - registry:/var/lib/registry
     environment:
@@ -38,7 +38,7 @@ services:
     image: docker:dind
     restart: always
     privileged: true
-    hostname: "dockerd.outpost"
+    hostname: dockerd.outpost
     volumes:
       - ./dockerd/daemon.json:/etc/docker/daemon.json
       - dockerd:/var/lib/docker
