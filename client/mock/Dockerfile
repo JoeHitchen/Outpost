@@ -1,6 +1,8 @@
 FROM alpine
 
-COPY version_number.txt .
+ARG IMAGE_NAME=mock
 
-CMD ["cat", "version_number.txt"]
+RUN echo $IMAGE_NAME > image_name.txt
+
+CMD ["cat", "image_name.txt"]
 

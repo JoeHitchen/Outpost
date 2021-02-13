@@ -19,6 +19,7 @@ def build_and_save(image_name, image_path, build_path):
     image, _ = docker.from_env().images.build(
         path = build_path,
         tag = image_name,
+        buildargs = {'IMAGE_NAME': image_name},
     )
     
     print('Saving {} to {} ...'.format(image_name, image_path))
