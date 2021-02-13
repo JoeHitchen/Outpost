@@ -1,6 +1,10 @@
 import random
+import os
 
-import docker
+import image_utils as utils
+
+REGISTRY_HOST = os.environ.get('REGISTRY_HOST')
+RX_DATA = os.environ.get('RX_DATA')
 
 
 with open('mock/version_number.txt') as file:
@@ -25,10 +29,14 @@ with open('mock/version_number.txt', 'w') as file:
 
 print('Releasing version {}'.format(new_version))
 
-new_image = 'registry.outpost/mock:{}'.format(new_version)
 
-client = docker.from_env()
-client.images.build(path = 'mock', tag = new_image)
-client.images.push(new_image)
+image_short = 'mock:{}'.format(new_version)
+image_filename = image_short.replace(':', '-') + '.docker'
+
+utils.build_and_save(
+    image_short,
+    os.path.join(RX_DATA, image_filename),
+    'mock',
+)
 
 
