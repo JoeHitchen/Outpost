@@ -3,6 +3,11 @@ import os
 
 import docker
 
+import image_utils as utils
+
+
+RX_DATA = os.environ.get('RX_DATA')
+
 
 def get_and_bump_version():
     
@@ -37,11 +42,24 @@ if __name__ == '__main__':
     target_image_name = '{}/mock:{}'.format(REGISTRY_HOST, target_image_version)
     print('Loading version {} ...'.format(target_image_version))
     
-    try:
-        target_image_meta = docker_client.images.get_registry_data(target_image_name)
-    except docker.errors.APIError:
-        raise LookupError('Need to make request for image')
-    
+    if not utils.check_repository_for_image(target_image_name):
+        print('{} must be requested'.format(target_image_name))
+        
+        target_image_short = target_image_name.split('/')[1]
+        target_image_filename = target_image_short.replace(':', '.') + '.docker'
+        
+        utils.build_and_save(
+            target_image_short,
+            os.path.join(RX_DATA, target_image_filename),
+            'mock',
+        )
+        
+        utils.load_and_push(
+            target_image_name,
+            os.path.join(RX_DATA, target_image_filename),
+        )
+        
+        assert utils.check_repository_for_image(target_image_name)
     
     out = docker_client.containers.run(target_image_name)
     print(out)

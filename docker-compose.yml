@@ -19,6 +19,7 @@ services:
     environment:
       - DOCKER_HOST=dockerd.outpost:2375
       - REGISTRY_HOST=registry.outpost
+      - RX_DATA=/tmp
     volumes:
       - ./client/version_number.txt:/usr/src/app/version_number.txt
     depends_on:
