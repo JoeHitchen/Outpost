@@ -13,6 +13,15 @@ services:
     depends_on:
       - dockerd
   
+  client:
+    build: client
+    image: outpost-client
+    environment:
+      - DOCKER_HOST=dockerd.outpost:2375
+      - REGISTRY_HOST=registry.outpost
+    depends_on:
+      - dockerd
+  
   registry:
     image: registry
     restart: always
