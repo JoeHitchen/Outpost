@@ -1,0 +1,3 @@
+celery[redis]<5
+flower
+

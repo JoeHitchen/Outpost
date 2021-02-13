@@ -3,10 +3,7 @@ import os
 
 import docker
 
-import image_utils as utils
-
-
-RX_DATA = os.environ.get('RX_DATA')
+import txrx, image_utils as utils
 
 
 def get_and_bump_version():
@@ -45,19 +42,7 @@ if __name__ == '__main__':
     if not utils.check_repository_for_image(target_image_name):
         print('{} must be requested'.format(target_image_name))
         
-        target_image_short = target_image_name.split('/')[1]
-        target_image_filename = target_image_short.replace(':', '.') + '.docker'
-        
-        utils.build_and_save(
-            target_image_short,
-            os.path.join(RX_DATA, target_image_filename),
-            'mock',
-        )
-        
-        utils.load_and_push(
-            target_image_name,
-            os.path.join(RX_DATA, target_image_filename),
-        )
+        txrx.request_image_transfer.delay(target_image_name).wait()
         
         assert utils.check_repository_for_image(target_image_name)
     

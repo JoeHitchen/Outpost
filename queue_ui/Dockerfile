@@ -1,0 +1,16 @@
+FROM python:3.7-alpine
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV HOME /usr/src/app
+
+WORKDIR $HOME
+RUN adduser --disabled-password python && chown -R python:python $HOME
+
+COPY --chown=python requirements.txt .
+RUN pip install -r requirements.txt
+
+USER python
+ENTRYPOINT ["flower", "--port=5555"]
+EXPOSE 5555
+
