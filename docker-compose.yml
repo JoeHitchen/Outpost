@@ -6,6 +6,10 @@ services:
     image: outpost-python
     environment:
       - DOCKER_HOST=dockerd.outpost:2375
+      - REGISTRY_HOST=registry.outpost
+      - RX_DATA=/tmp
+    volumes:
+      - rx_data:/tmp
     depends_on:
       - dockerd
   
@@ -46,4 +50,5 @@ services:
 volumes:
   registry:
   dockerd:
+  rx_data:
 
