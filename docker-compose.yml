@@ -25,6 +25,9 @@ services:
       - registry:/var/lib/registry
     environment:
       - REGISTRY_HTTP_ADDR=0.0.0.0:80
+    networks:
+      - default
+      - gateway
   
   registry_ui:
     image: parabuzzle/craneoperator:latest
@@ -55,6 +58,9 @@ services:
     hostname: gateway.outpost
     volumes:
       - gateway_messages:/data
+    networks:
+      - gateway
+      - default
   
   gateway_dashboard:
     build: queue_ui
@@ -63,6 +69,8 @@ services:
     command: --broker=redis://gateway.outpost:6379/0
     ports:
       - 5556:5555
+    networks:
+      - gateway
     depends_on:
       - gateway_messages
   
@@ -76,6 +84,8 @@ services:
     volumes:
       - gateway_dockerd:/var/lib/docker
       - ./dockerd/daemon.json:/etc/docker/daemon.json
+    networks:
+      - gateway
   
   gateway_worker:
     build: client
@@ -92,6 +102,8 @@ services:
       - RX_DATA=/usr/rx
     volumes:
       - txrx_data:/usr/rx
+    networks:
+      - gateway
     depends_on:
       - txrx_messages
       - gateway_messages
@@ -105,7 +117,7 @@ services:
       - txrx_messages:/data
     networks:
       - txrx
-      - default
+      - gateway
   
   txrx_dashboard:
     build: queue_ui
@@ -160,6 +172,7 @@ volumes:
 
 networks:
   default:
+  gateway:
   txrx:
 
 
