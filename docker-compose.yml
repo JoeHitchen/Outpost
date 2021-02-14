@@ -5,33 +5,33 @@ services:
     build: client
     image: outpost-client
     environment:
-      - TXRX_QUEUE=redis://queues:6379/0
-      - TXRX_RESULTS=redis://queues:6379/1
       - DOCKER_HOST=dockerd.outpost:2375
       - REGISTRY_HOST=registry.outpost
+      - TX_MESSAGES=redis://txrx.outpost:6379/0
+      - RX_MESSAGES=redis://txrx.outpost:6379/1
       - RX_DATA=/tmp
     volumes:
-      - rx_data:/tmp
+      - txrx_data:/tmp
       - ./client/version_number.txt:/usr/src/app/version_number.txt
     depends_on:
       - dockerd
-      - queues
+      - txrx_messages
   
   worker:
     build: client
     image: outpost-worker
     command: celery --app=txrx worker --loglevel=info
     environment:
-      - TXRX_QUEUE=redis://queues:6379/0
-      - TXRX_RESULTS=redis://queues:6379/1
       - DOCKER_HOST=dockerd.outpost:2375
       - REGISTRY_HOST=registry.outpost
+      - TX_MESSAGES=redis://txrx.outpost:6379/0
+      - RX_MESSAGES=redis://txrx.outpost:6379/1
       - RX_DATA=/tmp
     volumes:
-      - rx_data:/tmp
+      - txrx_data:/tmp
     depends_on:
       - dockerd
-      - queues
+      - txrx_messages
   
   registry:
     image: registry
@@ -65,23 +65,24 @@ services:
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
   
-  queues:
+  txrx_messages:
     image: redis:5-alpine
+    hostname: txrx.outpost
     volumes:
-      - queues:/data
+      - txrx_messages:/data
   
-  queue_ui:
+  txrx_dashboard:
     build: queue_ui
     image: outpost-queue-ui
-    command: --broker=redis://queues:6379/0
+    command: --broker=redis://txrx.outpost:6379/0
     ports:
       - 5555:5555
     depends_on:
-      - queues
+      - txrx_messages
 
 volumes:
   registry:
   dockerd:
-  rx_data:
-  queues:
+  txrx_messages:
+  txrx_data:
 
