@@ -97,12 +97,22 @@ services:
     depends_on:
       - txrx_messages
   
+  txrx_dockerd:
+    image: docker:dind
+    restart: always
+    privileged: true
+    hostname: txrx-dockerd.outpost
+    volumes:
+      - txrx_dockerd:/var/lib/docker
+    environment:
+      - DOCKER_TLS_CERTDIR=  # Disable TLS
+  
   txrx_worker:
     build: client
     image: outpost-worker
     command: celery --app=txrx worker --loglevel=info
     environment:
-      - DOCKER_HOST=dockerd.outpost:2375
+      - DOCKER_HOST=txrx-dockerd.outpost:2375
       - TX_MESSAGES=redis://txrx.outpost:6379/0
       - RX_MESSAGES=redis://txrx.outpost:6379/1
       - RX_DATA=/tmp
@@ -117,5 +127,6 @@ volumes:
   dockerd:
   gateway_messages:
   txrx_messages:
+  txrx_dockerd:
   txrx_data:
 
