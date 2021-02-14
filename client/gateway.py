@@ -8,8 +8,8 @@ RX_DATA = os.environ.get('RX_DATA')
 
 gateway = Celery(
     'middleware',
-    broker = os.environ.get('TX_GATEWAY'),
-    backend = os.environ.get('RX_GATEWAY'),
+    broker = os.environ.get('GATEWAY_REQUEST'),
+    backend = os.environ.get('GATEWAY_RESPONSE'),
 )
 
 
