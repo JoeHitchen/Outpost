@@ -7,31 +7,13 @@ services:
     environment:
       - DOCKER_HOST=dockerd.outpost:2375
       - REGISTRY_HOST=registry.outpost
-      - TX_GATEWAY=redis://gateway.outpost:6379/0
-      - RX_GATEWAY=redis://gateway.outpost:6379/1
+      - GATEWAY_REQUEST=redis://gateway.outpost:6379/0
+      - GATEWAY_RESPONSE=redis://gateway.outpost:6379/1
     volumes:
       - ./client/version_number.txt:/usr/src/app/version_number.txt
     depends_on:
       - dockerd
       - gateway_messages
-  
-  worker:
-    build: client
-    image: outpost-worker
-    command: celery --app=gateway worker --loglevel=info
-    environment:
-      - DOCKER_HOST=dockerd.outpost:2375
-      - REGISTRY_HOST=registry.outpost
-      - TX_GATEWAY=redis://gateway.outpost:6379/0
-      - RX_GATEWAY=redis://gateway.outpost:6379/1
-      - TX_MESSAGES=redis://txrx.outpost:6379/0
-      - RX_MESSAGES=redis://txrx.outpost:6379/1
-      - RX_DATA=/tmp
-    volumes:
-      - txrx_data:/tmp
-    depends_on:
-      - dockerd
-      - txrx_messages
   
   registry:
     image: registry
@@ -41,6 +23,9 @@ services:
       - registry:/var/lib/registry
     environment:
       - REGISTRY_HTTP_ADDR=0.0.0.0:80
+    networks:
+      - default
+      - gateway
   
   registry_ui:
     image: parabuzzle/craneoperator:latest
@@ -67,18 +52,60 @@ services:
   
   gateway_messages:
     image: redis:5-alpine
+    restart: always
     hostname: gateway.outpost
     volumes:
       - gateway_messages:/data
+    networks:
+      - gateway
+      - default
   
   gateway_dashboard:
     build: queue_ui
     image: outpost-queue-ui
+    restart: always
     command: --broker=redis://gateway.outpost:6379/0
     ports:
       - 5556:5555
+    networks:
+      - gateway
     depends_on:
       - gateway_messages
+  
+  gateway_dockerd:
+    image: docker:dind
+    restart: always
+    hostname: gateway-dockerd.outpost
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=  # Disable TLS
+    volumes:
+      - gateway_dockerd:/var/lib/docker
+      - ./dockerd/daemon.json:/etc/docker/daemon.json
+    networks:
+      - gateway
+  
+  gateway_worker:
+    build: client
+    image: outpost-worker
+    restart: always
+    command: celery --app=gateway worker --loglevel=info
+    environment:
+      - DOCKER_HOST=gateway-dockerd.outpost:2375
+      - REGISTRY_HOST=registry.outpost
+      - GATEWAY_REQUEST=redis://gateway.outpost:6379/0
+      - GATEWAY_RESPONSE=redis://gateway.outpost:6379/1
+      - TX_MESSAGES=redis://txrx.outpost:6379/0
+      - RX_MESSAGES=redis://txrx.outpost:6379/1
+      - RX_DATA=/usr/rx
+    volumes:
+      - txrx_data:/usr/rx
+    networks:
+      - gateway
+    depends_on:
+      - txrx_messages
+      - gateway_messages
+      - gateway_dockerd
   
   txrx_messages:
     image: redis:5-alpine
@@ -88,7 +115,7 @@ services:
       - txrx_messages:/data
     networks:
       - txrx
-      - default
+      - gateway
   
   txrx_dashboard:
     build: queue_ui
@@ -136,12 +163,14 @@ volumes:
   registry:
   dockerd:
   gateway_messages:
+  gateway_dockerd:
   txrx_messages:
   txrx_dockerd:
   txrx_data:
 
 networks:
   default:
+  gateway:
   txrx:
 
 
