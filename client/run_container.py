@@ -3,7 +3,7 @@ import os
 
 import docker
 
-import txrx, image_utils as utils
+import gateway, image_utils as utils
 
 
 def get_and_bump_version():
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     if not utils.check_repository_for_image(target_image_name):
         print('{} must be requested'.format(target_image_name))
         
-        txrx.request_image_transfer.delay(target_image_name).wait()
+        gateway.request_image_transfer.delay(target_image_name).wait()
         
         assert utils.check_repository_for_image(target_image_name)
     
