@@ -87,6 +87,9 @@ services:
     hostname: txrx.outpost
     volumes:
       - txrx_messages:/data
+    networks:
+      - txrx
+      - default
   
   txrx_dashboard:
     build: queue_ui
@@ -94,6 +97,8 @@ services:
     command: --broker=redis://txrx.outpost:6379/0
     ports:
       - 5555:5555
+    networks:
+      - txrx
     depends_on:
       - txrx_messages
   
@@ -104,6 +109,8 @@ services:
     hostname: txrx-dockerd.outpost
     volumes:
       - txrx_dockerd:/var/lib/docker
+    networks:
+      - txrx
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
   
@@ -118,6 +125,8 @@ services:
       - RX_DATA=/tmp
     volumes:
       - txrx_data:/tmp
+    networks:
+      - txrx
     depends_on:
       - txrx_messages
       - dockerd
@@ -129,4 +138,9 @@ volumes:
   txrx_messages:
   txrx_dockerd:
   txrx_data:
+
+networks:
+  default:
+  txrx:
+
 
