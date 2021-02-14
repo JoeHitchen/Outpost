@@ -132,7 +132,7 @@ services:
       - txrx
     depends_on:
       - txrx_messages
-      - dockerd
+      - txrx_dockerd
 
 volumes:
   registry:
