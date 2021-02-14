@@ -51,6 +51,7 @@ services:
   
   gateway_messages:
     image: redis:5-alpine
+    restart: always
     hostname: gateway.outpost
     volumes:
       - gateway_messages:/data
@@ -58,6 +59,7 @@ services:
   gateway_dashboard:
     build: queue_ui
     image: outpost-queue-ui
+    restart: always
     command: --broker=redis://gateway.outpost:6379/0
     ports:
       - 5556:5555
@@ -78,6 +80,7 @@ services:
   gateway_worker:
     build: client
     image: outpost-worker
+    restart: always
     command: celery --app=gateway worker --loglevel=info
     environment:
       - DOCKER_HOST=gateway-dockerd.outpost:2375
