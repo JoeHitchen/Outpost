@@ -8,8 +8,8 @@ RX_DATA = os.environ.get('RX_DATA')
 
 txrx = Celery(
     'txrx',
-    broker = os.environ.get('TX_MESSAGES'),
-    backend = os.environ.get('RX_MESSAGES'),
+    broker = os.environ.get('TXRX_REQUEST'),
+    backend = os.environ.get('TXRX_RESPONSE'),
 )
 
 

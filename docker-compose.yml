@@ -95,8 +95,8 @@ services:
       - REGISTRY_HOST=registry.outpost
       - GATEWAY_REQUEST=redis://gateway.outpost:6379/0
       - GATEWAY_RESPONSE=redis://gateway.outpost:6379/1
-      - TX_MESSAGES=redis://txrx.outpost:6379/0
-      - RX_MESSAGES=redis://txrx.outpost:6379/1
+      - TXRX_REQUEST=redis://txrx.outpost:6379/0
+      - TXRX_RESPONSE=redis://txrx.outpost:6379/1
       - RX_DATA=/usr/rx
     volumes:
       - txrx_data:/usr/rx
@@ -148,8 +148,8 @@ services:
     command: celery --app=txrx worker --loglevel=info
     environment:
       - DOCKER_HOST=txrx-dockerd.outpost:2375
-      - TX_MESSAGES=redis://txrx.outpost:6379/0
-      - RX_MESSAGES=redis://txrx.outpost:6379/1
+      - TXRX_REQUEST=redis://txrx.outpost:6379/0
+      - TXRX_RESPONSE=redis://txrx.outpost:6379/1
       - RX_DATA=/tmp
     volumes:
       - txrx_data:/tmp
