@@ -84,6 +84,7 @@ services:
   
   txrx_messages:
     image: redis:5-alpine
+    restart: always
     hostname: txrx.outpost
     volumes:
       - txrx_messages:/data
@@ -94,6 +95,7 @@ services:
   txrx_dashboard:
     build: queue_ui
     image: outpost-queue-ui
+    restart: always
     command: --broker=redis://txrx.outpost:6379/0
     ports:
       - 5555:5555
@@ -117,6 +119,7 @@ services:
   txrx_worker:
     build: client
     image: outpost-worker
+    restart: always
     command: celery --app=txrx worker --loglevel=info
     environment:
       - DOCKER_HOST=txrx-dockerd.outpost:2375
