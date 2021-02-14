@@ -17,24 +17,6 @@ services:
       - dockerd
       - txrx_messages
   
-  worker:
-    build: client
-    image: outpost-worker
-    command: celery --app=gateway worker --loglevel=info
-    environment:
-      - DOCKER_HOST=gateway-dockerd.outpost:2375
-      - REGISTRY_HOST=registry.outpost
-      - TX_GATEWAY=redis://gateway.outpost:6379/0
-      - RX_GATEWAY=redis://gateway.outpost:6379/1
-      - TX_MESSAGES=redis://txrx.outpost:6379/0
-      - RX_MESSAGES=redis://txrx.outpost:6379/1
-      - RX_DATA=/tmp
-    volumes:
-      - txrx_data:/tmp
-    depends_on:
-      - txrx_messages
-      - gateway_dockerd
-  
   registry:
     image: registry
     restart: always
@@ -92,6 +74,25 @@ services:
     volumes:
       - gateway_dockerd:/var/lib/docker
       - ./dockerd/daemon.json:/etc/docker/daemon.json
+  
+  gateway_worker:
+    build: client
+    image: outpost-worker
+    command: celery --app=gateway worker --loglevel=info
+    environment:
+      - DOCKER_HOST=gateway-dockerd.outpost:2375
+      - REGISTRY_HOST=registry.outpost
+      - TX_GATEWAY=redis://gateway.outpost:6379/0
+      - RX_GATEWAY=redis://gateway.outpost:6379/1
+      - TX_MESSAGES=redis://txrx.outpost:6379/0
+      - RX_MESSAGES=redis://txrx.outpost:6379/1
+      - RX_DATA=/usr/rx
+    volumes:
+      - txrx_data:/usr/rx
+    depends_on:
+      - txrx_messages
+      - gateway_messages
+      - gateway_dockerd
   
   txrx_messages:
     image: redis:5-alpine
