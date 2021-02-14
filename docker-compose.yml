@@ -22,7 +22,7 @@ services:
     image: outpost-worker
     command: celery --app=gateway worker --loglevel=info
     environment:
-      - DOCKER_HOST=dockerd.outpost:2375
+      - DOCKER_HOST=gateway-dockerd.outpost:2375
       - REGISTRY_HOST=registry.outpost
       - TX_GATEWAY=redis://gateway.outpost:6379/0
       - RX_GATEWAY=redis://gateway.outpost:6379/1
@@ -32,8 +32,8 @@ services:
     volumes:
       - txrx_data:/tmp
     depends_on:
-      - dockerd
       - txrx_messages
+      - gateway_dockerd
   
   registry:
     image: registry
@@ -81,6 +81,17 @@ services:
       - 5556:5555
     depends_on:
       - gateway_messages
+  
+  gateway_dockerd:
+    image: docker:dind
+    restart: always
+    hostname: gateway-dockerd.outpost
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=  # Disable TLS
+    volumes:
+      - gateway_dockerd:/var/lib/docker
+      - ./dockerd/daemon.json:/etc/docker/daemon.json
   
   txrx_messages:
     image: redis:5-alpine
@@ -138,6 +149,7 @@ volumes:
   registry:
   dockerd:
   gateway_messages:
+  gateway_dockerd:
   txrx_messages:
   txrx_dockerd:
   txrx_data:
