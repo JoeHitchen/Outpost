@@ -15,7 +15,7 @@ services:
       - ./client/version_number.txt:/usr/src/app/version_number.txt
     depends_on:
       - dockerd
-      - txrx_messages
+      - gateway_messages
   
   worker:
     build: client
