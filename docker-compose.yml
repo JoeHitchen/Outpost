@@ -59,13 +59,13 @@ services:
   dockerd:
     image: docker:dind
     restart: always
-    privileged: true
     hostname: dockerd.outpost
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
       - ./dockerd/daemon.json:/etc/docker/daemon.json
       - dockerd:/var/lib/docker
-    environment:
-      - DOCKER_TLS_CERTDIR=  # Disable TLS
   
   gateway_messages:
     image: redis:5-alpine
@@ -107,14 +107,14 @@ services:
   txrx_dockerd:
     image: docker:dind
     restart: always
-    privileged: true
     hostname: txrx-dockerd.outpost
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
       - txrx_dockerd:/var/lib/docker
     networks:
       - txrx
-    environment:
-      - DOCKER_TLS_CERTDIR=  # Disable TLS
   
   txrx_worker:
     build: client
