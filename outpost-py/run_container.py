@@ -3,7 +3,8 @@ import os
 
 import docker
 
-import gateway, image_utils as utils
+import image_utils as utils
+import gateway
 
 
 def get_and_bump_version():

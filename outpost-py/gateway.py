@@ -2,7 +2,8 @@ import os
 
 from celery import Celery, result
 
-import txrx, image_utils as utils
+import image_utils as utils
+import txrx
 
 RX_DATA = os.environ.get('RX_DATA')
 

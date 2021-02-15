@@ -44,7 +44,7 @@ def load_and_push(image_name, image_path, image_hash):
         image = images.load(file.read())[0]
     
     if image.id != image_hash:
-    	raise ValueError('Loaded image hash does not match expected value')
+        raise ValueError('Loaded image hash does not match expected value')
     
     image.tag(repository = image_name_parts[0], tag = image_name_parts[1])
     
