@@ -1,0 +1,22 @@
+name: Validate Outpost python
+
+on: push
+
+jobs:
+  validate:
+    name: Validate main python application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Linting
+        run: |
+          cd outpost-py
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements_linting.txt
+          flake8
+
