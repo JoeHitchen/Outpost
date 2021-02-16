@@ -44,6 +44,8 @@ services:
     restart: always
     hostname: dockerd.outpost
     privileged: true
+    ports:
+      - 8080:8000
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:

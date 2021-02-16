@@ -1,8 +1,16 @@
-FROM alpine
+FROM python:3.7-alpine
 
-ARG IMAGE_NAME=mock
+ARG IMAGE_NAME=mock:0.0.2
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV HOME /usr/src/app
 
-RUN echo $IMAGE_NAME > image_name.txt
+WORKDIR $HOME
+RUN adduser --disabled-password python && chown -R python:python $HOME
 
-CMD ["cat", "image_name.txt"]
+COPY --chown=python . .
+
+RUN sed -i 's/a container/'$IMAGE_NAME'/g' index.html
+
+CMD ["python", "-m", "http.server"]
 
