@@ -40,6 +40,7 @@ For Docker images, they are loaded from the inbound data folder into a backing D
 Finally, the task worker informs the consumer that its request has been fulfilled and that it can continue with its task.
 
 \* If you wish to try it yourself, those (and a standard-latency internet connection) are all you need. Run `docker-compose up` and you're away.
+You may need to run `git update-index --skip-worktree outpost-py/version_number.txt` to avoid unwanted Git diffs.
 
 
 ## Future plans
