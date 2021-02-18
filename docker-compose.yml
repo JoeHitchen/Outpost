@@ -9,8 +9,10 @@ services:
       - REGISTRY_HOST=registry.$DOMAIN
       - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
       - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
+      - TERRAFORM_DIR=/var/terraform/config
     volumes:
       - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
+      - ./terraform:/var/terraform/config
     depends_on:
       - dockerd
       - gateway_messages
