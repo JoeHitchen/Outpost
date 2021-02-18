@@ -47,7 +47,11 @@ if __name__ == '__main__':
         
         assert utils.check_repository_for_image(target_image_name)
     
-    out = docker_client.containers.run(target_image_name)
+    for container in docker_client.containers.list(all = True):
+        if container.status == 'running':
+            container.stop()
+        container.remove()
+    out = docker_client.containers.run(target_image_name, detach = True, ports = {8000: 8000})
     print(out)
 
 

@@ -25,7 +25,7 @@ def _transfer_docker_image(image_name):
     image_meta = utils.build_and_save(
         image_name,
         os.path.join(RX_DATA, image_filename),
-        'mock',
+        os.environ.get('DOCKER_BUILD_DIR'),
     )
     
     image_meta['file'] = image_filename
