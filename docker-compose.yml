@@ -21,8 +21,11 @@ services:
     hostname: registry.$DOMAIN
     volumes:
       - registry:/var/lib/registry
+      - /etc/letsencrypt:/crt:ro
     environment:
-      - REGISTRY_HTTP_ADDR=0.0.0.0:80
+      - REGISTRY_HTTP_ADDR=0.0.0.0:443
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/crt/live/registry.$DOMAIN/fullchain.pem
+      - REGISTRY_HTTP_TLS_KEY=/crt/live/registry.$DOMAIN/privkey.pem
     networks:
       - default
       - gateway
@@ -34,8 +37,8 @@ services:
       - 8000:80
     environment:
       - REGISTRY_HOST=registry.$DOMAIN
-      - REGISTRY_PORT=80
-      - REGISTRY_PROTOCOL=http
+      - REGISTRY_PROTOCOL=https
+      - REGISTRY_PORT=443
     depends_on:
       - registry
   
@@ -49,7 +52,6 @@ services:
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
-      - ./dockerd/daemon.json:/etc/docker/daemon.json
       - dockerd:/var/lib/docker
   
   gateway_messages:
@@ -83,7 +85,6 @@ services:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
       - gateway_dockerd:/var/lib/docker
-      - ./dockerd/daemon.json:/etc/docker/daemon.json
     networks:
       - gateway
   
