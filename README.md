@@ -39,8 +39,25 @@ Once a response has been received, the task worker will process the returned dat
 For Docker images, they are loaded from the inbound data folder into a backing Docker daemon, `gateway_dockerd`, and then pushed to the registry where they are available for the consumers.
 Finally, the task worker informs the consumer that its request has been fulfilled and that it can continue with its task.
 
-\* If you wish to try it yourself, those (and a standard-latency internet connection) are all you need. Run `docker-compose up` and you're away.
-You may need to run `git update-index --skip-worktree outpost-py/version_number.txt` to avoid unwanted Git diffs.
+## Try it yourself
+
+Unfortunately, due to the [limitations of the Docker provider for Terraform](https://github.com/kreuzwerker/terraform-provider-docker/issues/135)*, the Outpost container registry must be configured with full HTTPS security - HTTP connections or self-signed TLS certificates are not accepted.
+As a result, running Outpost requires access to a domain that you can generate TLS certificates for and the configuration assumes that:
+* It is running on a Linux host
+* Let's Encrypt/Certbot is installed, and a certificate for `registry.<mydomain.tls>` is available in the standard location.
+  If you use Route53 as your DNS provider, then such a certificate can be generated with:
+  ```
+    sudo certbot certonly --dns-route53 -d registry.<mydomain.tls>
+  ```
+These are not hard requirements unlike the registry security and could be worked around for a different set up, but configuration changes will be necessary.
+
+Beyond that difficulty, the project is managed entirely within Docker Compose and the necessary services can be brought online with `docker-compose up`.
+Once the services are online, the simulated release/update process can be triggered with `docker-compose run --rm client python run_container.py`.
+_This process is randomised, so not all triggers will result in a new release._
+The active release version is currently stored in `outpost-py/version_number.txt` and the release process will generate Git diffs as this file is updated.
+To ignore those diffs, run `git update-index --skip-worktree outpost-py/version_number.txt`.
+
+\* Guidance on how to work around this issue would be very welcome.
 
 
 ## Future plans
