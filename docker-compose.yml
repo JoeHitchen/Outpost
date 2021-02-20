@@ -5,8 +5,8 @@ services:
     build: outpost-py
     image: outpost-client
     environment:
-      - DOCKER_HOST=dockerd.outpost:2375
-      - REGISTRY_HOST=registry.outpost
+      - DOCKER_HOST=dockerd.$DOMAIN:2375
+      - REGISTRY_HOST=registry.$DOMAIN
       - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
       - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
     volumes:
@@ -18,7 +18,7 @@ services:
   registry:
     image: registry
     restart: always
-    hostname: registry.outpost
+    hostname: registry.$DOMAIN
     volumes:
       - registry:/var/lib/registry
     environment:
@@ -33,7 +33,7 @@ services:
     ports:
       - 8000:80
     environment:
-      - REGISTRY_HOST=registry.outpost
+      - REGISTRY_HOST=registry.$DOMAIN
       - REGISTRY_PORT=80
       - REGISTRY_PROTOCOL=http
     depends_on:
@@ -42,7 +42,7 @@ services:
   dockerd:
     image: docker:dind
     restart: always
-    hostname: dockerd.outpost
+    hostname: dockerd.$DOMAIN
     privileged: true
     ports:
       - 8080:8000
@@ -94,7 +94,7 @@ services:
     command: celery --app=gateway worker --loglevel=info
     environment:
       - DOCKER_HOST=gateway-dockerd.$DOMAIN:2375
-      - REGISTRY_HOST=registry.outpost
+      - REGISTRY_HOST=registry.$DOMAIN
       - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
       - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
       - TXRX_REQUEST=redis://txrx.$DOMAIN/0
