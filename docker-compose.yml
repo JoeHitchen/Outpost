@@ -15,33 +15,6 @@ services:
       - dockerd
       - gateway_messages
   
-  registry:
-    image: registry
-    restart: always
-    hostname: registry.$DOMAIN
-    volumes:
-      - registry:/var/lib/registry
-      - /etc/letsencrypt:/crt:ro
-    environment:
-      - REGISTRY_HTTP_ADDR=0.0.0.0:443
-      - REGISTRY_HTTP_TLS_CERTIFICATE=/crt/live/registry.$DOMAIN/fullchain.pem
-      - REGISTRY_HTTP_TLS_KEY=/crt/live/registry.$DOMAIN/privkey.pem
-    networks:
-      - default
-      - gateway
-  
-  registry_ui:
-    image: parabuzzle/craneoperator:latest
-    restart: always
-    ports:
-      - 8000:80
-    environment:
-      - REGISTRY_HOST=registry.$DOMAIN
-      - REGISTRY_PROTOCOL=https
-      - REGISTRY_PORT=443
-    depends_on:
-      - registry
-  
   dockerd:
     image: docker:dind
     restart: always
@@ -53,6 +26,33 @@ services:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
       - dockerd:/var/lib/docker
+  
+  registry_main:
+    image: registry
+    restart: always
+    hostname: registry.$DOMAIN
+    volumes:
+      - registry_data:/var/lib/registry
+      - /etc/letsencrypt:/crt:ro
+    environment:
+      - REGISTRY_HTTP_ADDR=0.0.0.0:443
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/crt/live/registry.$DOMAIN/fullchain.pem
+      - REGISTRY_HTTP_TLS_KEY=/crt/live/registry.$DOMAIN/privkey.pem
+    networks:
+      - default
+      - gateway
+  
+  registry_dashboard:
+    image: parabuzzle/craneoperator:latest
+    restart: always
+    ports:
+      - 8000:80
+    environment:
+      - REGISTRY_HOST=registry.$DOMAIN
+      - REGISTRY_PROTOCOL=https
+      - REGISTRY_PORT=443
+    depends_on:
+      - registry_main
   
   gateway_messages:
     image: redis:alpine
@@ -165,8 +165,8 @@ services:
       - txrx_dockerd
 
 volumes:
-  registry:
   dockerd:
+  registry_data:
   gateway_messages:
   gateway_dockerd:
   txrx_messages:
