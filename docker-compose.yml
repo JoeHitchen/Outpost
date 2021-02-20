@@ -53,7 +53,7 @@ services:
       - dockerd:/var/lib/docker
   
   gateway_messages:
-    image: redis:5-alpine
+    image: redis:alpine
     restart: always
     hostname: gateway.outpost
     volumes:
@@ -110,7 +110,7 @@ services:
       - gateway_dockerd
   
   txrx_messages:
-    image: redis:5-alpine
+    image: redis:alpine
     restart: always
     hostname: txrx.outpost
     volumes:
