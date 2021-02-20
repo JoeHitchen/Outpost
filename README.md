@@ -47,10 +47,10 @@ You may need to run `git update-index --skip-worktree outpost-py/version_number.
 
 It is hoped that future iterations of this adventure will bring in a wider range of tools and provide a fuller picture of what is possible.
 In rough order of likely inclusion:
-* A true dynamic target service, rather than a run-once task
 * Git integration for robust versioning of the target service
 * Terraform configuration management for the target service
 * A custom dashboard to provide overarching process oversight and monitoring
+* An interesting target service, rather than a bland testing page
 * Kubernetes as a deployment target, rather than simple Docker containers
 * A self-referential Terraform configuration which also includes the infrastructure components needed to run the core Outpost services
 
