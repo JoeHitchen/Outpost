@@ -97,8 +97,8 @@ services:
       - REGISTRY_HOST=registry.outpost
       - GATEWAY_REQUEST=redis://gateway.outpost:6379/0
       - GATEWAY_RESPONSE=redis://gateway.outpost:6379/1
-      - TXRX_REQUEST=redis://txrx.outpost:6379/0
-      - TXRX_RESPONSE=redis://txrx.outpost:6379/1
+      - TXRX_REQUEST=redis://txrx.$DOMAIN/0
+      - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
       - RX_DATA=/usr/rx
     volumes:
       - txrx_data:/usr/rx
@@ -112,7 +112,7 @@ services:
   txrx_messages:
     image: redis:5-alpine
     restart: always
-    hostname: txrx.outpost
+    hostname: txrx.$DOMAIN
     volumes:
       - txrx_messages:/data
     networks:
@@ -123,7 +123,7 @@ services:
     build: queue_ui
     image: outpost-queue-ui
     restart: always
-    command: --broker=redis://txrx.outpost:6379/0
+    command: --broker=redis://txrx.$DOMAIN/0
     ports:
       - 5555:5555
     networks:
@@ -134,7 +134,7 @@ services:
   txrx_dockerd:
     image: docker:dind
     restart: always
-    hostname: txrx-dockerd.outpost
+    hostname: txrx-dockerd.$DOMAIN
     privileged: true
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
@@ -149,10 +149,10 @@ services:
     restart: always
     command: celery --app=txrx worker --loglevel=info
     environment:
-      - DOCKER_HOST=txrx-dockerd.outpost:2375
+      - DOCKER_HOST=txrx-dockerd.$DOMAIN:2375
       - DOCKER_BUILD_DIR=/var/build/target
-      - TXRX_REQUEST=redis://txrx.outpost:6379/0
-      - TXRX_RESPONSE=redis://txrx.outpost:6379/1
+      - TXRX_REQUEST=redis://txrx.$DOMAIN/0
+      - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
       - RX_DATA=/tmp
     volumes:
       - txrx_data:/tmp
