@@ -17,21 +17,21 @@ def bump_image_version():
     with open(os.path.join(os.environ.get('TERRAFORM_DIR'), 'main.tf')) as file:
         lines = file.read().splitlines()
     
-    regex_str = 'data "docker_registry_image" "\w+" {'
+    regex_str = 'data "docker_registry_image" "\w+" {'  # noqa: W605
     for line_num in range(0, len(lines)):
         if re.match(regex_str, lines[line_num]):
             break
     
     old_version = None
-    for line in lines[line_num+1:]:
+    for line in lines[line_num + 1:]:
         line_num += 1
-        match = re.match('.*(?P<version>\d\.\d\.\d).*', line)
+        match = re.match('.*(?P<version>\d\.\d\.\d).*', line)  # noqa: W605
         if match:
             old_version = [int(part) for part in match.group('version').split('.')]
             break
     
     if not old_version:
-        raise Exception('Didn\'t find old version')
+        raise Exception("Didn't find old version")
     
     version = copy(old_version)
     if random.choice([True, False, False]):
@@ -56,7 +56,7 @@ def bump_image_version():
 
 def identify_missing_image(stderr):
     match = None
-    regex_str = '  on (?P<file>\w+.tf) line (?P<line>\d+), in data "docker_registry_image" "\w+":'
+    regex_str = '  on (?P<file>\w+.tf) line (?P<line>\d+), in data "docker_registry_image" "\w+":'  # noqa: E501 W605
     for line in stderr.split('\n'):
         match = re.match(regex_str, line)
         if match:
@@ -68,16 +68,16 @@ def identify_missing_image(stderr):
     with open(os.path.join(os.environ.get('TERRAFORM_DIR'), match.group('file'))) as file:
         lines = file.read().splitlines()
     
-    assert lines[int(match.group('line'))-1][:28] == 'data "docker_registry_image"'
+    assert lines[int(match.group('line')) - 1][:28] == 'data "docker_registry_image"'
     resource_lines = []
     for line in lines[int(match.group('line')):]:
-        if re.match('\s*}\s*', line):
+        if re.match('\s*}\s*', line):  # noqa: W605
             break
         resource_lines.append(line)
     
     image = None
     for line in resource_lines:
-        match = re.match('\s*name\s*=\s*"(?P<image>.*)"\s*', line)
+        match = re.match('\s*name\s*=\s*"(?P<image>.*)"\s*', line)  # noqa: W605
         if match:
             image = match.group('image').split('/')[-1]
     assert image
