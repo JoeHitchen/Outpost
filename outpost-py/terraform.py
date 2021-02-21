@@ -1,12 +1,17 @@
 import os
 import re
+import logging
 
 from python_terraform import Terraform
 
 import gateway
 
+logging.basicConfig(level = logging.ERROR)
+logger = logging.getLogger('Terraform')
+logger.setLevel(logging.INFO)
 
-def identify_missing_containers(stderr):
+
+def identify_missing_image(stderr):
     match = None
     regex_str = '  on (?P<file>\w+.tf) line (?P<line>\d+), in data "docker_registry_image" "\w+":'
     for line in stderr.split('\n'):
@@ -37,22 +42,33 @@ def identify_missing_containers(stderr):
     return image
 
 
-if __name__ == '__main__':
+def run_terraform():
+    logger.info('Running Terraform')
     
+    # Prepare Terraform
     tf = Terraform(
         working_dir = os.environ.get('TERRAFORM_DIR'),
         terraform_bin_path = os.path.join(os.environ.get('TERRAFORM_DIR'), 'terraform'),
     )
     
+    # Initialise Terraform configuration
     status, stdout, stderr = tf.init()
-    print((status, stdout, stderr))
+    if status:
+        for line in stderr.split('\n'):
+            logger.error(line)
+        raise Exception('`terraform init` failed')
+    for line in stdout.split('\n'):
+        logger.debug(line)
     
+    # Iterate Terraform apply attempts
     count = 0
     retry = True
     while retry and count < 10:
         count += 1
         retry = False
         
+        # Attempt apply
+        logger.info('Apply attempt #{}'.format(count))
         status, stdout, stderr = tf.apply(
             var = {
                 'docker_host': os.environ.get('DOCKER_HOST'),
@@ -62,10 +78,36 @@ if __name__ == '__main__':
             # ^ `skip_plan` replaces auto-approve, intentionally or otherwise
             # https://github.com/beelit94/python-terraform/issues/84#issuecomment-648896385
         )
-        print((status, stdout, stderr))
+        
+        # Record success and exit
+        if not status:
+            logger.info('Apply successful')
+            for line in stdout.split('\n'):
+                logger.debug(line)
+            return
+        
+        # Log apply error
+        logger.info('Apply failed')
+        for line in stderr.split('\n'):
+            logger.debug(line)
+        
+        # Attempt resolution
         if status:
-            missing_image = identify_missing_containers(stderr)
-            gateway.request_image_transfer.delay(missing_image).wait()
-            retry = True
+            
+            # Missing Docker image?
+            missing_image = identify_missing_image(stderr)
+            if missing_image:
+                logger.info('Identified missing Docker image - {}'.format(missing_image))
+                gateway.request_image_transfer.delay(missing_image).wait()
+                retry = True
+                continue
+    
+    # Accept defeat
+    logger.error('Apply iteration failed to succeed in {} attempts'.format(count))
+    raise Exception('`terraform apply` failed too many times')
+
+
+if __name__ == '__main__':
+    run_terraform()
 
 
