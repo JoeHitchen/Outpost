@@ -1,4 +1,6 @@
 .env*
 !.env.template
 venv*
-
+terraform/.terraform
+!terraform/.terraform.lock.hcl
+terraform/*.tfstate*
