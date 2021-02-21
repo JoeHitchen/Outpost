@@ -52,10 +52,10 @@ As a result, running Outpost requires access to a domain that you can generate T
 These are not hard requirements unlike the registry security and could be worked around for a different set up, but configuration changes will be necessary.
 
 Beyond that difficulty, the project is managed entirely within Docker Compose and the necessary services can be brought online with `docker-compose up`.
-Once the services are online, the simulated release/update process can be triggered with `docker-compose run --rm client python run_container.py`.
+Once the services are online, the simulated release/update process can be triggered with `docker-compose run --rm client python terraform.py`.
 _This process is randomised, so not all triggers will result in a new release._
-The active release version is currently stored in `outpost-py/version_number.txt` and the release process will generate Git diffs as this file is updated.
-To ignore those diffs, run `git update-index --skip-worktree outpost-py/version_number.txt`.
+The active release version is stored in `terraform/main.tf` and the release process will generate Git diffs as this file is updated.
+To ignore those diffs, run `git update-index --skip-worktree terraform/main.tf`.
 
 \* Guidance on how to work around this issue would be very welcome.
 
@@ -64,8 +64,7 @@ To ignore those diffs, run `git update-index --skip-worktree outpost-py/version_
 
 It is hoped that future iterations of this adventure will bring in a wider range of tools and provide a fuller picture of what is possible.
 In rough order of likely inclusion:
-* Git integration for robust versioning of the target service
-* Terraform configuration management for the target service
+* Git integration for robust configuration management for the target service
 * A custom dashboard to provide overarching process oversight and monitoring
 * An interesting target service, rather than a bland testing page
 * Kubernetes as a deployment target, rather than simple Docker containers
