@@ -21,23 +21,33 @@ The titular _Outpost_ represents these communities and their services, and this 
 
 ## How does it work?
 
-The Outpost project consists of an assortment of Docker containers orchestrated with Docker Compose*.
-There are three components to the system that simulate different aspects of the whole.
+The Outpost project is a Docker-based simulation, using containers to provide the various services necessary for managing the high-latency connection and performing the infrastructure automation.
+There are four service groups which compose the Outpost stack.
 
-The most fundamental is the **Transmit & Receive (TxRx)** module that simulates the transmissions sent and reponses received over the high-latency network connection itself.
-This presents itself as a Redis message queue, `txrx_messages`, for accepting and returning information requests, with additional large data objects which are impractical to return in a message (saved Docker images and zipped Git repositories) passed directly using a shared folder, `txrx_data`.
-The message service is backed by Python/Celery task workers, `txrx_worker`, to process the queries and create appropriately mocked data, and which are in turn backed by a Docker daemon for image creation, `txrx_dockerd`.
-A Flower dashboard to see the status of TxRx messages, `txrx_dashboard`, is also available externally on port 5555.
+First, is the **Consumer** group, which consists of a `client` container that acts as the entrypoint to the process and a `docker` service running a Docker daemon for running the target services.
+When triggered, the `client` performs a randomised update to the target service version defined in the Terraform configuration, and then attempts to apply the new configuration.
 
-At the other end is the **Consumer** module which contains the infrastructure automation service and the auxiliary services that it manages.
+The Terraform process attempts to pull the required containers from the **Registry** group, consisting of a Docker registry, `registry_main`, and a visual explorer for it, `registry_dashboard`, on host port 8000.
+This group provides a low-latency-but-non-authoritative container registry to act as the source for Outpost service deployments and allows these deployments to be automated using the standard Docker and Terraform tooling.
 
-Between them lies the **Gateway** module which presents a low-latency-but-non-authoritative front for the remote services to the consumers.
-This consists of a Docker registry, `registry`, that can be accessed regularly by the consumer and a Redis message queue, `gateway_messages`, for requesting additional content.
-Both of these have status dashboards available externally - Crane Operator, `registry_ui`, for examining the contents of the Docker registry is on port 8000, and another Flower dashboard for the message queue, `gateway_dashboard`, is on port 5556.
-When requests for additional content arrive in the message queue, they are handled by another set of Python/Celery task workers, `gateway_worker`, that translate them and pass them on to the TxRx module.
-Once a response has been received, the task worker will process the returned data appropriately.
-For Docker images, they are loaded from the inbound data folder into a backing Docker daemon, `gateway_dockerd`, and then pushed to the registry where they are available for the consumers.
-Finally, the task worker informs the consumer that its request has been fulfilled and that it can continue with its task.
+However, the challenge arises when the registry does not hold a requested image.
+In this situation, the `client` detects from the `terraform apply` errors that a new image is required and makes a request to the **Gateway** group.
+The group acts as a front for the high-latency connection and performs intelligent response handling on the data that it receives back.
+It consists of a Redis message queue, `gateway_messages`, to accept inbound requests from the Consumer group and a Python/Celery application, `gateway_worker`, to process those requests.
+These are supported by another Docker daemon, `gateway_dockerd`, used to handle received Docker image transfers, and a Python/Flower instance, `gateway_dashboard`, for monitoring the Gateway task queue on host port 5556.
+
+When a new request is picked up by a Gateway Celery worker, it is very quickly passed on to the final service group, **Transmit & Receive (TxRx)**.
+This group simulates the high-latency connection itself, as well as the remote services that provide the authoritative source for service and configuration definitions.
+It is structured very similarly to the Gateway group, with a Redis message queue, `txrx_messages`, for accepting requests, and a Python/Celery application, `txrx_worker`, for processing those requests.
+There is also a Docker daemon, `gateway_dockerd`, so the worker can dynamically build target application images as required and a Python/Flower instance, `txrx_dashboard`, for monitoring the task queue, this time on host port 5555.
+However unlike the Gateway queue, the TxRx task queue has an induced delay (defaulting to 15 seconds) to reflect the communication lag involved.
+Once the delay has passed and the image has been built, the worker sends a response containing basic information to the Gateway and dumps the image to a shared directory (mocking large data transfers that are impractical to return directly).
+
+On the return path, the Gateway worker picks up the task again, loads the returned image dump into the Gateway Docker daemon, and pushes it Outpost Docker registry.
+The new image will then be available for the client to access and the Gateway worker returns a success response.
+Finally, the client makes another attempt to apply the new configuration, which should now have all its requirements met and be successful itself.
+The simple target application is made available for inspection on host port 8080.
+
 
 ## Try it yourself
 
@@ -82,4 +92,8 @@ However, this project is quick and dirty, aiming for function over elegence.
 
 It also does not attempt to solve the problem of database synchronisation, since my "skills" as a "DBA" only go so far.
 Blob transfer (as might be needed for a static Javascript frontend) is not addressed specifically either, since no doubt someone has already produced a more profession solution than I could ever hope to.
+
+Outpost is also built around a pull-based paradigm, where the Outpost requests information from the remote systems.
+The alternative would be a push-based process where the remote systems package everything up that the Outpost will need - system definitions, configurations, etc - into a single deployment package and transfer that to the Outpost in one go.
+This definitely offers advantages since the remote systems will have prior knowledge about what will be needed, but it also remove authority from the Outpost and offers no resolution path if the deployment package is unworkable.
 
