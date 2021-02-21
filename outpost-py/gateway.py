@@ -17,14 +17,12 @@ gateway = Celery(
 @gateway.task(name = 'gateway.docker_pull')
 def request_image_transfer(image_name):
     
-    image_name_repoless = '/'.join(image_name.split('/')[1:])
-    
     with result.allow_join_result():
-        image_meta = txrx.transfer_docker_image(image_name_repoless).wait()
-    assert image_meta['name'] == image_name_repoless
+        image_meta = txrx.transfer_docker_image(image_name).wait()
+    assert image_meta['name'] == image_name
     
     utils.load_and_push(
-        image_name,
+        '/'.join([os.environ.get('REGISTRY_HOST'), image_name]),
         os.path.join(RX_DATA, image_meta['file']),
         image_meta['hash'],
     )
