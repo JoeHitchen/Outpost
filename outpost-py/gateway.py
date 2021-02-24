@@ -14,6 +14,15 @@ gateway = Celery(
 )
 
 
+@gateway.task(name = 'gateway.git_fetch')
+def request_git_fetch(repo_name):
+    
+    with result.allow_join_result():
+        reply = txrx.transfer_git_history(repo_name).wait()
+    
+    return reply
+
+
 @gateway.task(name = 'gateway.docker_pull')
 def request_image_transfer(image_name):
     

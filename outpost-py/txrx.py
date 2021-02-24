@@ -13,6 +13,15 @@ txrx = Celery(
 )
 
 
+def transfer_git_history(repo_name):
+    return _transfer_git_history.apply_async((repo_name,), countdown = 1)
+
+
+@txrx.task(name = 'txrx.transfer_git_history')
+def _transfer_git_history(repo_name):
+    return repo_name
+
+
 def transfer_docker_image(image_name):
     return _transfer_docker_image.apply_async((image_name,), countdown = 15)
 
