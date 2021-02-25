@@ -1,6 +1,7 @@
 .env*
 !.env.template
 venv*
+__pycache__
 terraform/.terraform
 !terraform/.terraform.lock.hcl
 terraform/*.tfstate*
