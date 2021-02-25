@@ -8,7 +8,7 @@ import txrx
 RX_DATA = os.environ.get('RX_DATA')
 
 gateway = Celery(
-    'middleware',
+    'gateway',
     broker = os.environ.get('GATEWAY_REQUEST'),
     backend = os.environ.get('GATEWAY_RESPONSE'),
 )
