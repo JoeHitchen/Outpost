@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from git import Repo
 
 import image_utils as utils
 
@@ -19,7 +20,28 @@ def transfer_git_history(repo_name):
 
 @txrx.task(name = 'txrx.transfer_git_history')
 def _transfer_git_history(repo_name):
-    return repo_name
+    
+    repo_path = os.path.join(os.environ.get('GIT_DATA'), repo_name)
+    print(repo_path)
+    
+    repo = Repo.init(repo_path, mkdir = True)
+    
+    with open(os.path.join(repo_path, 'text.txt'), 'w') as file:
+        file.write('test')
+    
+    index = repo.index
+    index.add(repo.untracked_files)
+    index.commit('Version 1.0.0')
+    
+    commit = repo.commit('master')
+    
+    return {
+        'repo': repo_name,
+        'branch': 'master',
+        'hash': commit.hexsha,
+        'datetime': commit.committed_datetime,
+        'message': commit.message,
+    }
 
 
 def transfer_docker_image(image_name):
