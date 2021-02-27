@@ -4,11 +4,13 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV HOME /usr/src/app
 ENV GIT_DATA /var/git
+ENV GIT_HOST /srv/git
 
 WORKDIR $HOME
 RUN adduser --disabled-password python && chown -R python:python $HOME 
 
-RUN mkdir $GIT_DATA && chown -R python:python $GIT_DATA
+RUN mkdir $GIT_DATA && chown -R python:python $GIT_DATA \
+ && mkdir $GIT_HOST && chown -R python:python $GIT_HOST
 
 RUN apk add --no-cache git
 COPY --chown=python requirements.txt .

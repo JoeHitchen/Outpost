@@ -1,7 +1,7 @@
 import os
 
 from celery import Celery
-from git import Repo
+import git
 
 import image_utils as utils
 
@@ -20,27 +20,45 @@ def transfer_git_history(repo_name):
 
 @txrx.task(name = 'txrx.transfer_git_history')
 def _transfer_git_history(repo_name):
+    assert repo_name[-4:] == '.git'
     
+    # Load existing source repository
     repo_path = os.path.join(os.environ.get('GIT_DATA'), repo_name)
-    print(repo_path)
+    try:
+        repo = git.Repo(repo_path)
     
-    repo = Repo.init(repo_path, mkdir = True)
+    # Create new source repository
+    except git.exc.NoSuchPathError:
+        
+        repo = git.Repo.init(repo_path, mkdir = True)
+        
+        with open(os.path.join(repo_path, 'text.txt'), 'w') as file:
+            file.write('test')
+        
+        index = repo.index
+        index.add(repo.untracked_files)
+        index.commit('Version 1.0.0')
     
-    with open(os.path.join(repo_path, 'text.txt'), 'w') as file:
-        file.write('test')
     
-    index = repo.index
-    index.add(repo.untracked_files)
-    index.commit('Version 1.0.0')
+    # Get transfer repository name
+    transfer_rel_path = os.path.join('git', repo_name)
+    if not repo.remotes:
+        
+        transfer_abs_path = os.path.join(RX_DATA, transfer_rel_path)
+        git.Repo.init(transfer_abs_path, bare = True, mkdir = True)
+        repo.create_remote('origin', url = transfer_abs_path)
     
+    
+    # Perform transfer
     commit = repo.commit('master')
-    
+    repo.remotes.origin.push('master:master')
     return {
         'repo': repo_name,
         'branch': 'master',
         'hash': commit.hexsha,
         'datetime': commit.committed_datetime,
         'message': commit.message,
+        'location': transfer_rel_path,
     }
 
 
