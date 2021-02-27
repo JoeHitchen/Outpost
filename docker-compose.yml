@@ -13,7 +13,7 @@ services:
       - TERRAFORM_DIR=/var/terraform/config
     volumes:
       - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
-      - ./terraform:/var/terraform/config
+      - ./git:/var/terraform/config
       - git_data:/srv/git
     depends_on:
       - dockerd
@@ -158,12 +158,14 @@ services:
     environment:
       - DOCKER_HOST=txrx-dockerd.$DOMAIN:2375
       - DOCKER_BUILD_DIR=/var/build/target
+      - TERRAFORM_TEMPLATE_PATH=/src/terraform
       - TXRX_REQUEST=redis://txrx.$DOMAIN/0
       - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
       - RX_DATA=/tmp
     volumes:
       - txrx_data:/tmp
       - txrx_git:/var/git
+      - ./terraform:/src/terraform
       - ./target-py:/var/build/target
     networks:
       - txrx

@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from celery import Celery
 import git
@@ -32,8 +33,8 @@ def _transfer_git_history(repo_name):
         
         repo = git.Repo.init(repo_path, mkdir = True)
         
-        with open(os.path.join(repo_path, 'text.txt'), 'w') as file:
-            file.write('test')
+        for file in os.listdir(os.environ.get('TERRAFORM_TEMPLATE_PATH')):
+            shutil.copy2(os.path.join(os.environ.get('TERRAFORM_TEMPLATE_PATH'), file), repo_path)
         
         index = repo.index
         index.add(repo.untracked_files)

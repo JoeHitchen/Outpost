@@ -1,6 +1,7 @@
 .env*
 !.env.template
 venv*
+git
 terraform/.terraform
 !terraform/.terraform.lock.hcl
 terraform/*.tfstate*
