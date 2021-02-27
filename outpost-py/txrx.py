@@ -1,5 +1,8 @@
 import os
 import shutil
+import re
+from copy import copy
+import random
 
 from celery import Celery
 import git
@@ -15,6 +18,50 @@ txrx = Celery(
 )
 
 
+def bump_image_version(file_path):
+    with open(file_path) as file:
+        lines = file.read().splitlines()
+    
+    regex_str = 'data "docker_registry_image" "\w+" {'  # noqa: W605
+    for line_num in range(0, len(lines)):
+        if re.match(regex_str, lines[line_num]):
+            break
+    
+    old_version = None
+    for line in lines[line_num + 1:]:
+        line_num += 1
+        match = re.match('.*(?P<version>\d\.\d\.\d).*', line)  # noqa: W605
+        if match:
+            old_version = [int(part) for part in match.group('version').split('.')]
+            break
+    
+    if not old_version:
+        raise Exception("Didn't find old version")
+    
+    version = copy(old_version)
+    if random.choice([True, False, False]):
+        version[2] += 1
+        
+        if random.choice([True, False, False]):
+            version[1] += 1
+            version[2] = 0
+            
+            if random.choice([True, False, False]):
+                version[0] += 1
+                version[1] = 0
+
+    version_str = '.'.join(str(part) for part in version)
+    lines[line_num] = re.sub(
+        '.'.join(str(part) for part in old_version),
+        '.'.join(str(part) for part in version),
+        lines[line_num],
+    )
+    with open(file_path, 'w') as file:
+        file.write('\n'.join(lines))
+    
+    return version_str
+
+
 def transfer_git_history(repo_name):
     return _transfer_git_history.apply_async((repo_name,), countdown = 1)
 
@@ -27,18 +74,24 @@ def _transfer_git_history(repo_name):
     repo_path = os.path.join(os.environ.get('GIT_DATA'), repo_name)
     try:
         repo = git.Repo(repo_path)
+        version = bump_image_version(os.path.join(repo_path, 'main.tf'))
     
     # Create new source repository
     except git.exc.NoSuchPathError:
         
         repo = git.Repo.init(repo_path, mkdir = True)
+        version = '1.0.0'
         
         for file in os.listdir(os.environ.get('TERRAFORM_TEMPLATE_PATH')):
             shutil.copy2(os.path.join(os.environ.get('TERRAFORM_TEMPLATE_PATH'), file), repo_path)
         
+    
+    # Commit changes
+    if (not repo.branches) or repo.is_dirty():
         index = repo.index
         index.add(repo.untracked_files)
-        index.commit('Version 1.0.0')
+        index.add([changed.a_path for changed in index.diff(None)])
+        index.commit('Version {}'.format(version))
     
     
     # Get transfer repository name
