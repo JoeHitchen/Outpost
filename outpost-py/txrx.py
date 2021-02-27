@@ -85,14 +85,12 @@ def _transfer_git_history(repo_name):
         for file in os.listdir(os.environ.get('TERRAFORM_TEMPLATE_PATH')):
             shutil.copy2(os.path.join(os.environ.get('TERRAFORM_TEMPLATE_PATH'), file), repo_path)
         
-    
     # Commit changes
     if (not repo.branches) or repo.is_dirty():
         index = repo.index
         index.add(repo.untracked_files)
         index.add([changed.a_path for changed in index.diff(None)])
         index.commit('Version {}'.format(version))
-    
     
     # Get transfer repository name
     transfer_rel_path = os.path.join('git', repo_name)
@@ -101,7 +99,6 @@ def _transfer_git_history(repo_name):
         transfer_abs_path = os.path.join(RX_DATA, transfer_rel_path)
         git.Repo.init(transfer_abs_path, bare = True, mkdir = True)
         repo.create_remote('origin', url = transfer_abs_path)
-    
     
     # Perform transfer
     commit = repo.commit('master')
