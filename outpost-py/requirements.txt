@@ -1,4 +1,5 @@
 docker
 celery[redis]
 python-terraform
+gitpython
 

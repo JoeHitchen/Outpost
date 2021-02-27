@@ -7,12 +7,14 @@ services:
     environment:
       - DOCKER_HOST=dockerd.$DOMAIN:2375
       - REGISTRY_HOST=registry.$DOMAIN
+      - GIT_HOST=file:///srv/git
       - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
       - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
       - TERRAFORM_DIR=/var/terraform/config
     volumes:
       - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
-      - ./terraform:/var/terraform/config
+      - ./git:/var/terraform/config
+      - git_data:/srv/git
     depends_on:
       - dockerd
       - gateway_messages
@@ -98,12 +100,14 @@ services:
     environment:
       - DOCKER_HOST=gateway-dockerd.$DOMAIN:2375
       - REGISTRY_HOST=registry.$DOMAIN
+      - GIT_HOST=file:///srv/git
       - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
       - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
       - TXRX_REQUEST=redis://txrx.$DOMAIN/0
       - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
       - RX_DATA=/usr/rx
     volumes:
+      - git_data:/srv/git
       - txrx_data:/usr/rx
     networks:
       - gateway
@@ -154,11 +158,14 @@ services:
     environment:
       - DOCKER_HOST=txrx-dockerd.$DOMAIN:2375
       - DOCKER_BUILD_DIR=/var/build/target
+      - TERRAFORM_TEMPLATE_PATH=/src/terraform
       - TXRX_REQUEST=redis://txrx.$DOMAIN/0
       - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
       - RX_DATA=/tmp
     volumes:
       - txrx_data:/tmp
+      - txrx_git:/var/git
+      - ./terraform:/src/terraform
       - ./target-py:/var/build/target
     networks:
       - txrx
@@ -169,11 +176,13 @@ services:
 volumes:
   dockerd:
   registry_data:
+  git_data:
   gateway_messages:
   gateway_dockerd:
   txrx_messages:
   txrx_dockerd:
   txrx_data:
+  txrx_git:
 
 networks:
   default:
