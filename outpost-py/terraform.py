@@ -54,7 +54,7 @@ def bump_image_version():
         file.write('\n'.join(lines))
 
 
-def identify_missing_image(stderr):
+def identify_missing_image(app_work_dir, stderr):
     match = None
     regex_str = '  on (?P<file>\w+.tf) line (?P<line>\d+), in data "docker_registry_image" "\w+":'  # noqa: E501 W605
     for line in stderr.split('\n'):
@@ -65,7 +65,7 @@ def identify_missing_image(stderr):
     if not match:
         raise ValueError(stderr)
     
-    with open(os.path.join(os.environ.get('TERRAFORM_DIR'), match.group('file'))) as file:
+    with open(os.path.join(app_work_dir, match.group('file'))) as file:
         lines = file.read().splitlines()
     
     assert lines[int(match.group('line')) - 1][:28] == 'data "docker_registry_image"'
@@ -85,13 +85,13 @@ def identify_missing_image(stderr):
     return image
 
 
-def run_terraform():
+def apply_configuration(app_work_dir):
     logger.info('Running Terraform')
     
     # Prepare Terraform
     tf = Terraform(
-        working_dir = os.environ.get('TERRAFORM_DIR'),
-        terraform_bin_path = os.path.join(os.environ.get('TERRAFORM_DIR'), 'terraform'),
+        working_dir = app_work_dir,
+        terraform_bin_path = os.path.join(app_work_dir, 'terraform'),
     )
     
     # Initialise Terraform configuration
@@ -138,7 +138,7 @@ def run_terraform():
         if status:
             
             # Missing Docker image?
-            missing_image = identify_missing_image(stderr)
+            missing_image = identify_missing_image(app_work_dir, stderr)
             if missing_image:
                 logger.info('Identified missing Docker image - {}'.format(missing_image))
                 gateway.request_image_transfer.delay(missing_image).wait()
@@ -148,10 +148,5 @@ def run_terraform():
     # Accept defeat
     logger.error('Apply iteration failed to succeed in {} attempts'.format(count))
     raise Exception('`terraform apply` failed too many times')
-
-
-if __name__ == '__main__':
-    bump_image_version()
-    run_terraform()
 
 

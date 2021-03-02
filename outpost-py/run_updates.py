@@ -4,6 +4,7 @@ import logging
 import git
 
 import gateway
+import terraform
 
 
 logging.basicConfig(level = logging.ERROR)
@@ -38,5 +39,11 @@ if __name__ == '__main__':
     app_work_dir = os.path.join(os.environ.get('TERRAFORM_DIR'), app_name)
     
     has_updates = check_for_updates(app_name, app_work_dir)
+    
+    logger.info({
+        True: 'Terraform will run to apply changes',
+        False: 'Terraform will run to prevent drift',
+    }[has_updates])
+    terraform.apply_configuration(app_work_dir)
 
 
