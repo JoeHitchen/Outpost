@@ -1,8 +1,6 @@
 import os
 import re
 import logging
-import random
-from copy import copy
 
 from python_terraform import Terraform
 
@@ -11,47 +9,6 @@ import gateway
 logging.basicConfig(level = logging.ERROR)
 logger = logging.getLogger('Terraform')
 logger.setLevel(logging.INFO)
-
-
-def bump_image_version():
-    with open(os.path.join(os.environ.get('TERRAFORM_DIR'), 'main.tf')) as file:
-        lines = file.read().splitlines()
-    
-    regex_str = 'data "docker_registry_image" "\w+" {'  # noqa: W605
-    for line_num in range(0, len(lines)):
-        if re.match(regex_str, lines[line_num]):
-            break
-    
-    old_version = None
-    for line in lines[line_num + 1:]:
-        line_num += 1
-        match = re.match('.*(?P<version>\d\.\d\.\d).*', line)  # noqa: W605
-        if match:
-            old_version = [int(part) for part in match.group('version').split('.')]
-            break
-    
-    if not old_version:
-        raise Exception("Didn't find old version")
-    
-    version = copy(old_version)
-    if random.choice([True, False, False]):
-        version[2] += 1
-        
-        if random.choice([True, False, False]):
-            version[1] += 1
-            version[2] = 0
-            
-            if random.choice([True, False, False]):
-                version[0] += 1
-                version[1] = 0
-    
-    lines[line_num] = re.sub(
-        '.'.join(str(part) for part in old_version),
-        '.'.join(str(part) for part in version),
-        lines[line_num],
-    )
-    with open(os.path.join(os.environ.get('TERRAFORM_DIR'), 'main.tf'), 'w') as file:
-        file.write('\n'.join(lines))
 
 
 def identify_missing_image(app_work_dir, stderr):

@@ -4,7 +4,7 @@ import logging
 import git
 
 import gateway
-import terraform
+import terraform  # noqa: I100 I201  Incorrectly identified conflict with python_terraform
 
 
 logging.basicConfig(level = logging.ERROR)
