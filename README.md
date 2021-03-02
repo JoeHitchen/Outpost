@@ -14,9 +14,11 @@ When authoritative data sources are not readily accessible?
 Not every community is able to guarantee a 24/7/365 low latency connection to the global internet.
 Ocean travelling ships or remote land communities may not always be in range of a communications satellite.
 Polar reseach stations are even further limited since few satellite have an orbit suitable for servicing them.
-Or worse, beyond Earth orbit the speed of light causes unavoidable communication delays, with round trip times to Mars between four and 24 minutes.
-Nevertheless, these current and future communities will have local networking, local services running, and the need to update those services, likely from an authorititive source a long way away.
-The titular _Outpost_ represents these communities and their services, and this project looks at how existing tools can be bent and abused to provide them infrastructure automation.
+Or worse, beyond Earth orbit the speed of light causes unavoidable communication delays, with round trip times of minutes or even hours.
+_Some_ support and software development would no doubt be possible in-situ, but likely a lot will be outsourced back to Earth (or better connected bits of it).
+Why make a bespoke video streaming service on Mars when Youtube or Netflix can define a portable version of their stack and host it using an in-situ "cloud" provider?
+
+The titular _Outpost_ represents these distant communities, and this project looks at how existing tools can be bent and abused to provide them infrastructure automation based on a authoritative source a long way away.
 
 
 ## How does it work?
