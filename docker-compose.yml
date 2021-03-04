@@ -3,7 +3,7 @@ version: "3.7"
 services:
   iac_worker:
     build: outpost-py
-    image: outpost-client
+    image: outpost-worker
     environment:
       - DOCKER_HOST=dockerd.$DOMAIN:2375
       - REGISTRY_HOST=registry.$DOMAIN
