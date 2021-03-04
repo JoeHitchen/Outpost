@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  client:
+  iac_worker:
     build: outpost-py
     image: outpost-client
     environment:
@@ -14,12 +14,12 @@ services:
     volumes:
       - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
       - ./git:/var/terraform/config
-      - git_data:/srv/git
+      - iac_git:/srv/git
     depends_on:
-      - dockerd
+      - iac_dockerd
       - gateway_messages
   
-  dockerd:
+  iac_dockerd:
     image: docker:dind
     restart: always
     hostname: dockerd.$DOMAIN
@@ -29,14 +29,14 @@ services:
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
-      - dockerd:/var/lib/docker
+      - iac_dockerd:/var/lib/docker
   
-  registry_main:
+  iac_registry:
     image: registry
     restart: always
     hostname: registry.$DOMAIN
     volumes:
-      - registry_data:/var/lib/registry
+      - iac_registry:/var/lib/registry
       - /etc/letsencrypt:/crt:ro
     environment:
       - REGISTRY_HTTP_ADDR=0.0.0.0:443
@@ -46,7 +46,7 @@ services:
       - default
       - gateway
   
-  registry_dashboard:
+  iac_images:
     image: parabuzzle/craneoperator:latest
     restart: always
     ports:
@@ -56,7 +56,7 @@ services:
       - REGISTRY_PROTOCOL=https
       - REGISTRY_PORT=443
     depends_on:
-      - registry_main
+      - iac_registry
   
   gateway_messages:
     image: redis:alpine
@@ -107,7 +107,7 @@ services:
       - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
       - RX_DATA=/usr/rx
     volumes:
-      - git_data:/srv/git
+      - iac_git:/srv/git
       - txrx_data:/usr/rx
     networks:
       - gateway
@@ -174,9 +174,9 @@ services:
       - txrx_dockerd
 
 volumes:
-  dockerd:
-  registry_data:
-  git_data:
+  iac_dockerd:
+  iac_registry:
+  iac_git:
   gateway_messages:
   gateway_dockerd:
   txrx_messages:
