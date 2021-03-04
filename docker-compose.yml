@@ -17,6 +17,7 @@ services:
       - iac_git:/srv/git
     depends_on:
       - iac_dockerd
+      - iac_registry
       - gateway_messages
   
   iac_dockerd:
