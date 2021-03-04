@@ -74,7 +74,6 @@ To ignore those diffs, run `git update-index --skip-worktree terraform/main.tf`.
 
 It is hoped that future iterations of this adventure will bring in a wider range of tools and provide a fuller picture of what is possible.
 In rough order of likely inclusion:
-* Git integration for robust configuration management for the target service
 * A custom dashboard to provide overarching process oversight and monitoring
 * An interesting target service, rather than a bland testing page
 * Kubernetes as a deployment target, rather than simple Docker containers
