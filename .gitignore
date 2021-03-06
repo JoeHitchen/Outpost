@@ -2,7 +2,6 @@
 !.env.template
 venv*
 __pycache__
-git
 terraform/.terraform
 !terraform/.terraform.lock.hcl
 terraform/*.tfstate*

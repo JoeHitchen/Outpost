@@ -10,10 +10,10 @@ services:
       - GIT_HOST=file:///srv/git
       - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
       - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
-      - TERRAFORM_DIR=/var/terraform/config
+      - TERRAFORM_DIR=/var/terraform
     volumes:
       - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
-      - ./git:/var/terraform/config
+      - iac_terraform:/var/terraform
       - iac_git:/srv/git
     depends_on:
       - iac_dockerd
@@ -180,6 +180,7 @@ volumes:
   iac_dockerd:
   iac_registry:
   iac_git:
+  iac_terraform:
   gateway_messages:
   gateway_dockerd:
   txrx_messages:
