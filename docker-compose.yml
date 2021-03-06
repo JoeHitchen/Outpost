@@ -106,6 +106,7 @@ services:
       - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
       - TXRX_REQUEST=redis://txrx.$DOMAIN/0
       - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
+      - TXRX_DELAY=$TXRX_DELAY
       - RX_DATA=/usr/rx
     volumes:
       - iac_git:/srv/git
@@ -162,6 +163,7 @@ services:
       - TERRAFORM_TEMPLATE_PATH=/src/terraform
       - TXRX_REQUEST=redis://txrx.$DOMAIN/0
       - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
+      - TXRX_DELAY=$TXRX_DELAY
       - RX_DATA=/tmp
     volumes:
       - txrx_data:/tmp

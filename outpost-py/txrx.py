@@ -10,6 +10,7 @@ import git
 import image_utils as utils
 
 RX_DATA = os.environ.get('RX_DATA')
+TXRX_DELAY = int(os.environ.get('TXRX_DELAY') or '15')
 
 txrx = Celery(
     'txrx',
@@ -69,7 +70,7 @@ def bump_image_version(file_path):
 
 
 def transfer_git_history(repo_name):
-    return _transfer_git_history.apply_async((repo_name,), countdown = 1)
+    return _transfer_git_history.apply_async((repo_name,), countdown = TXRX_DELAY)
 
 
 @txrx.task(name = 'txrx.transfer_git_history')
@@ -120,7 +121,7 @@ def _transfer_git_history(repo_name):
 
 
 def transfer_docker_image(image_name):
-    return _transfer_docker_image.apply_async((image_name,), countdown = 15)
+    return _transfer_docker_image.apply_async((image_name,), countdown = TXRX_DELAY)
 
 
 @txrx.task(name = 'txrx.transfer_docker_image')
