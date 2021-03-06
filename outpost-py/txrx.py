@@ -58,6 +58,7 @@ def bump_image_version(file_path):
     )
     with open(file_path, 'w') as file:
         file.write('\n'.join(lines))
+        file.write('\n')
     
     return version_str
 
