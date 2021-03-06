@@ -18,7 +18,33 @@ Or worse, beyond Earth orbit the speed of light causes unavoidable communication
 _Some_ support and software development would no doubt be possible in-situ, but likely a lot will be outsourced back to Earth (or better connected bits of it).
 Why make a bespoke video streaming service on Mars when Youtube or Netflix can define a portable version of their stack and host it using an in-situ "cloud" provider?
 
-The titular _Outpost_ represents these distant communities, and this project looks at how existing tools can be bent and abused to provide them infrastructure automation based on a authoritative source a long way away.
+The titular _Outpost_ represents these distant communities, and this project looks at how existing tools can be bent and abused to provide them with automated infrastructure and services based on a authoritative source a long way away.
+
+
+## Infrastructure Automation Tooling
+
+The automation process run by Outpost is based around [Terraform](https://www.terraform.io/).
+Terraform is a tool for creating repeatable infrastructure deployments by defining and managing resource configurations using declarative text files, similar to how one might define a class in Object-Oriented Programming.
+This paradigm is known as Infrastructure-as-Code (IaC) and, by extension, allows resource configurations to be robustly managed using standard version control tools.
+These configurations are based around plugins called [_providers_](https://registry.terraform.io/browse/providers), which cover everything from the major cloud providers like AWS to database administration on MySQL & PostgreSQL and identity services such as Active Directory.
+Incredibly versitile infrastructure stacks can be built using this framework, but for the purposes of this demonstration our "stack" will consist solely of the images and containers on a single Docker instance.
+
+[Docker](https://www.docker.com/) is a tool for creating portable, isolated deployments that run independently to the host system.
+The deployments are much more flexible than those of Java distributions since they can accomodate almost any Linux process, while also being considerably less resource intensive than virtual machines.
+A process template is called an _image_, and a _container_ is a running process created from an image.
+To create a container from an image, it is combined with a runtime configuration - environment variables, data to be made available, etc. - which results in a fully reproducible running service when those inputs are unchanged.
+
+Using Docker images for service definitions provides us with a lot of flexibility.
+Attempting to build services in-situ would lead to a lot more overhead, as the outpost would require access to the source code and all the tools needed to build the application, as well as those needed to run it.
+Any external dependencies pulled in during build-time, such as python packages, would also need to be made available on the remote site, and unexpected build errors would be very problematic to resolve cleanly.
+Using Docker images allows an application to be built and tested _exactly as it will be deployed_ by the teams building it before it is transferred elsewhere for operations;
+this is one of major factor behind containerisation's popularity.
+On the other hand, for a multi-service application using Docker images has advantages over a whole-application deployment package too.
+Instead of needing to repackage every service within the application for each new deployment, unchanged services can reuse previously shipped definitions and common services (for example, a Redis store) can be reused between applications, without needing to shipped by each one separately.
+
+With portable service templates described using Docker images and Terraform to convert those images into running services using a pre-defined configuration, the missing link is a tool for managing the configuration, and that tool is [Git](https://git-scm.com/).
+Primarily used for managing software source code during development, Git is also perfect for managing the plain-text Terraform configuration files and allows a setup to be defined and tested in one location before being accurately replicated to another.
+Note, however, that Git is not suitable for tracking the Docker images themselves, and they would need to be transferred separately.
 
 
 ## How does it work?
