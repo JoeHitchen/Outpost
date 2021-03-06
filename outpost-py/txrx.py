@@ -38,18 +38,23 @@ def bump_image_version(file_path):
     if not old_version:
         raise Exception("Didn't find old version")
     
+    # Decide if updates should be performed
+    if not random.choice([True, False, False]):
+        return '.'.join(str(part) for part in old_version)
+    
+    # Bump version
     version = copy(old_version)
+    version[2] += 1
+    
     if random.choice([True, False, False]):
-        version[2] += 1
+        version[1] += 1
+        version[2] = 0
         
         if random.choice([True, False, False]):
-            version[1] += 1
-            version[2] = 0
-            
-            if random.choice([True, False, False]):
-                version[0] += 1
-                version[1] = 0
-
+            version[0] += 1
+            version[1] = 0
+    
+    # Update configuration
     version_str = '.'.join(str(part) for part in version)
     lines[line_num] = re.sub(
         '.'.join(str(part) for part in old_version),
