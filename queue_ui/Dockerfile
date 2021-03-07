@@ -5,7 +5,8 @@ ENV PYTHONUNBUFFERED 1
 ENV HOME /usr/src/app
 
 WORKDIR $HOME
-RUN adduser --disabled-password python && chown -R python:python $HOME
+RUN adduser --disabled-password python && chown -R python:python $HOME \
+ && mkdir /var/dashboard && chown -R python:python /var/dashboard
 
 COPY --chown=python requirements.txt .
 RUN pip install -r requirements.txt

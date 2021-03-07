@@ -73,9 +73,11 @@ services:
     build: queue_ui
     image: outpost-queue-ui
     restart: always
-    command: --broker=redis://gateway.$DOMAIN/0
+    command: --broker=redis://gateway.$DOMAIN/0 --persistent --db=/var/dashboard/tasks.db
     ports:
       - 5556:5555
+    volumes:
+      - gateway_dashboard:/var/dashboard
     networks:
       - gateway
     depends_on:
@@ -132,9 +134,11 @@ services:
     build: queue_ui
     image: outpost-queue-ui
     restart: always
-    command: --broker=redis://txrx.$DOMAIN/0
+    command: --broker=redis://txrx.$DOMAIN/0 --persistent=true --db=/var/dashboard/tasks.db
     ports:
       - 5555:5555
+    volumes:
+      - txrx_dashboard:/var/dashboard
     networks:
       - txrx
     depends_on:
@@ -182,8 +186,10 @@ volumes:
   iac_git:
   iac_terraform:
   gateway_messages:
+  gateway_dashboard:
   gateway_dockerd:
   txrx_messages:
+  txrx_dashboard:
   txrx_dockerd:
   txrx_data:
   txrx_git:
