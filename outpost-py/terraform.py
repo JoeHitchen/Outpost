@@ -48,7 +48,7 @@ def apply_configuration(app_work_dir):
     # Prepare Terraform
     tf = Terraform(
         working_dir = app_work_dir,
-        terraform_bin_path = os.path.join(app_work_dir, 'terraform'),
+        terraform_bin_path = os.path.join(os.environ.get('HOME'), 'terraform'),
     )
     
     # Initialise Terraform configuration

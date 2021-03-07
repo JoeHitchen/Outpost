@@ -10,6 +10,7 @@ import git
 import image_utils as utils
 
 RX_DATA = os.environ.get('RX_DATA')
+TXRX_DELAY = int(os.environ.get('TXRX_DELAY') or '15')
 
 txrx = Celery(
     'txrx',
@@ -38,18 +39,23 @@ def bump_image_version(file_path):
     if not old_version:
         raise Exception("Didn't find old version")
     
+    # Decide if updates should be performed
+    if not random.choice([True, False, False]):
+        return '.'.join(str(part) for part in old_version)
+    
+    # Bump version
     version = copy(old_version)
+    version[2] += 1
+    
     if random.choice([True, False, False]):
-        version[2] += 1
+        version[1] += 1
+        version[2] = 0
         
         if random.choice([True, False, False]):
-            version[1] += 1
-            version[2] = 0
-            
-            if random.choice([True, False, False]):
-                version[0] += 1
-                version[1] = 0
-
+            version[0] += 1
+            version[1] = 0
+    
+    # Update configuration
     version_str = '.'.join(str(part) for part in version)
     lines[line_num] = re.sub(
         '.'.join(str(part) for part in old_version),
@@ -58,12 +64,13 @@ def bump_image_version(file_path):
     )
     with open(file_path, 'w') as file:
         file.write('\n'.join(lines))
+        file.write('\n')
     
     return version_str
 
 
 def transfer_git_history(repo_name):
-    return _transfer_git_history.apply_async((repo_name,), countdown = 1)
+    return _transfer_git_history.apply_async((repo_name,), countdown = TXRX_DELAY)
 
 
 @txrx.task(name = 'txrx.transfer_git_history')
@@ -114,7 +121,7 @@ def _transfer_git_history(repo_name):
 
 
 def transfer_docker_image(image_name):
-    return _transfer_docker_image.apply_async((image_name,), countdown = 15)
+    return _transfer_docker_image.apply_async((image_name,), countdown = TXRX_DELAY)
 
 
 @txrx.task(name = 'txrx.transfer_docker_image')
