@@ -137,3 +137,6 @@ Outpost is also built around a pull-based paradigm, where the Outpost requests i
 The alternative would be a push-based process where the remote systems package everything up that the Outpost will need - system definitions, configurations, etc - into a single deployment package and transfer that to the Outpost in one go.
 This definitely offers advantages since the remote systems will have prior knowledge about what will be needed, but it also remove authority from the Outpost and offers no resolution path if the deployment package is unworkable.
 
+_Finally, Outpost is a proof-of-concept to fulfil personal curiosity and should not be considered in any way mature or production-ready.
+If you are involved in operations where this might be relevant, please do not trust random code from Github hacked together over a couple of weekends._
+
