@@ -46,6 +46,18 @@ With portable service templates described using Docker images and Terraform to c
 Primarily used for managing software source code during development, Git is also perfect for managing the plain-text Terraform configuration files and allows a setup to be defined and tested in one location before being accurately replicated to another.
 Note, however, that Git is not suitable for tracking the Docker images themselves, and they would need to be transferred separately.
 
+Applying this tool chain, the update procedure for an application is a three-step process:
+1. Run `git fetch` to poll the Git server for any changes to the configuration, and pull them down locally
+1. Run `terraform init` to ensure the correct versions of the Terraform providers are installed
+1. Run `terraform apply` on the latest configuration (if there are no changes this is impotent and prevents configuration drift)
+    1. Terraform tells the Docker daemon which images to pull from the registry and which containers to create, update, & destroy
+
+This is fully automatable within a low-latency network and Terraform's creators HashiCorp even offer it as a SaaS product, [Terraform Cloud](https://www.hashicorp.com/products/terraform), which this project is partially inspired by.
+However, over a high-latency connection we cannot rely on the `git fetch` and implicit `docker pull` commands\* to complete within reasonable operational bounds.
+Without modifying the underlying protocols, Outpost builds additional process around the tooling to accomodate the expected delays, timeouts, and errors.
+
+\* The loading of providers with `terraform init` _should_ also be included here, but this requires more specialist knowledge and is deferred for future investigation (See [#5](https://github.com/JoeHitchen/Outpost/issues/5)).
+
 
 ## How does it work?
 
@@ -106,6 +118,7 @@ In rough order of likely inclusion:
 * An interesting target service, rather than a bland testing page
 * Kubernetes as a deployment target, rather than simple Docker containers
 * A self-referential Terraform configuration which also includes the infrastructure components needed to run the core Outpost services
+* A high-latency implementation of `terraform init` (See [#5](https://github.com/JoeHitchen/Outpost/issues/5))
 
 
 ## Why not Outpost?
