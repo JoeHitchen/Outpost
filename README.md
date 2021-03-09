@@ -61,32 +61,38 @@ Without modifying the underlying protocols, Outpost builds additional process ar
 
 ## How does it work?
 
-The Outpost project is a Docker-based simulation, using containers to provide the various services necessary for managing the high-latency connection and performing the infrastructure automation.
-There are four service groups which compose the Outpost stack.
+The Outpost project is a Docker-based simulation, using containers to provide the various services necessary for managing the infrastructure automation and managing the high-latency connection and performing the infrastructure automation.
+There are three service groups which compose the Outpost stack.
 
-First, is the **Consumer** group, which consists of a `client` container that acts as the entrypoint to the process and a `docker` service running a Docker daemon for running the target services.
-When triggered, the `client` performs a randomised update to the target service version defined in the Terraform configuration, and then attempts to apply the new configuration.
+First is the main **Infrastructure-as-Code (IaC)** group that is centered on running the automation procedure described above.
+The heavy lifting is performed by the `iac_worker` container, which runs a Python script and acts as the entry point to the process (see "Try it yourself" below).
+A containerised Docker daemon runs in the `iac_docker` service and acts as the deployment target, with the target service itself accessible on host post 8080.
+This group also contains a low-latency-but-non-authoritative Docker image registry, `iac_registry`, that acts as the local source of truth for the Docker images to be deployed on the Outpost.
+These stored images can be examined using a visual explorer, `iac_images`, on host port 8000.
+There is no specific Git service - a suitably simple option could be found - instead the locally-authoritative Git repositories are "hosted" on a shared volume in the file system, `iac_git`.
+Since they are referenced as remote repositories using the `file://` protocol, rather than manipulated as local files, this compromise will not affect the operational process.
 
-The Terraform process attempts to pull the required containers from the **Registry** group, consisting of a Docker registry, `registry_main`, and a visual explorer for it, `registry_dashboard`, on host port 8000.
-This group provides a low-latency-but-non-authoritative container registry to act as the source for Outpost service deployments and allows these deployments to be automated using the standard Docker and Terraform tooling.
-
-However, the challenge arises when the registry does not hold a requested image.
-In this situation, the `client` detects from the `terraform apply` errors that a new image is required and makes a request to the **Gateway** group.
+When requesting the Git remote be updated from the authoritative source or that a missing Docker image be transferred to the registry, **Gateway** group is invoked.
 The group acts as a front for the high-latency connection and performs intelligent response handling on the data that it receives back.
-It consists of a Redis message queue, `gateway_messages`, to accept inbound requests from the Consumer group and a Python/Celery application, `gateway_worker`, to process those requests.
+For `git fetch` requests, when a response is received, it is used to update the state of the locally-authoritative Git repository, while for `docker pull` requests, the received image is pushed to the locally registry to make it available for deployment.
+The group consists of a Redis message queue, `gateway_messages`, to accept inbound requests from the IaC group and a Python/Celery application, `gateway_worker`, to process those requests.
 These are supported by another Docker daemon, `gateway_dockerd`, used to handle received Docker image transfers, and a Python/Flower instance, `gateway_dashboard`, for monitoring the Gateway task queue on host port 5556.
 
 When a new request is picked up by a Gateway Celery worker, it is very quickly passed on to the final service group, **Transmit & Receive (TxRx)**.
 This group simulates the high-latency connection itself, as well as the remote services that provide the authoritative source for service and configuration definitions.
 It is structured very similarly to the Gateway group, with a Redis message queue, `txrx_messages`, for accepting requests, and a Python/Celery application, `txrx_worker`, for processing those requests.
-There is also a Docker daemon, `gateway_dockerd`, so the worker can dynamically build target application images as required and a Python/Flower instance, `txrx_dashboard`, for monitoring the task queue, this time on host port 5555.
-However unlike the Gateway queue, the TxRx task queue has an induced delay (defaulting to 15 seconds) to reflect the communication lag involved.
-Once the delay has passed and the image has been built, the worker sends a response containing basic information to the Gateway and dumps the image to a shared directory (mocking large data transfers that are impractical to return directly).
+There is also a Docker daemon, `txrx_dockerd`, for building target application images and a Python/Flower instance, `txrx_dashboard`, for monitoring the task queue, this time on host port 5555.
+However, unlike the Gateway queue, the TxRx task queue has an induced delay (defaulting to 15 seconds) to reflect the communication lag involved.
+Once this delay has passed then one of two actions is taken.
+For Git requests, a randomised version update is applied to the target service in the Terraform configuration, committed, and pushed to a repository in the transfer directory\*.
+For Docker requests, an image with the requested name & version is dynamically created from the template and dumped to a flat file, again in the transfer directory.
+In both cases, metadata is returned in the Celery task result, but it would be impractical to transfer the full Git repository or Docker image in this way.
 
-On the return path, the Gateway worker picks up the task again, loads the returned image dump into the Gateway Docker daemon, and pushes it Outpost Docker registry.
-The new image will then be available for the client to access and the Gateway worker returns a success response.
-Finally, the client makes another attempt to apply the new configuration, which should now have all its requirements met and be successful itself.
-The simple target application is made available for inspection on host port 8080.
+On the return path, the Gateway worker receives the response from the TxRx group and accesses the data from the transfer directory.
+As appropriate, the changes are either pushed to the IaC Git directory to be fetched by the IaC worker, or loaded and pushed to the IaC image registry to be pulled by the Terraform/Docker process.
+Once the processing is complete, a response is passed back to the IaC worker, which then continues running the automation, and may request further information be made available by the Gateway as required.
+
+\* Transferring the latest Git commits as flat files would provide a better simulation of the high-latency transfer, but it is unclear how best to do this.
 
 
 ## Try it yourself
