@@ -46,35 +46,53 @@ With portable service templates described using Docker images and Terraform to c
 Primarily used for managing software source code during development, Git is also perfect for managing the plain-text Terraform configuration files and allows a setup to be defined and tested in one location before being accurately replicated to another.
 Note, however, that Git is not suitable for tracking the Docker images themselves, and they would need to be transferred separately.
 
+Applying this tool chain, the update procedure for an application is a three-step process:
+1. Run `git fetch` to poll the Git server for any changes to the configuration, and pull them down locally
+1. Run `terraform init` to ensure the correct versions of the Terraform providers are installed
+1. Run `terraform apply` on the latest configuration (if there are no changes this is impotent and prevents configuration drift)
+    1. Terraform tells the Docker daemon which images to pull from the registry and which containers to create, update, & destroy
+
+This is fully automatable within a low-latency network and Terraform's creators HashiCorp even offer it as a SaaS product, [Terraform Cloud](https://www.hashicorp.com/products/terraform), which this project is partially inspired by.
+However, over a high-latency connection we cannot rely on the `git fetch` and implicit `docker pull` commands\* to complete within reasonable operational bounds.
+Without modifying the underlying protocols, Outpost builds additional process around the tooling to accomodate the expected delays, timeouts, and errors.
+
+\* The loading of providers with `terraform init` _should_ also be included here, but this requires more specialist knowledge and is deferred for future investigation (See [#5](https://github.com/JoeHitchen/Outpost/issues/5)).
+
 
 ## How does it work?
 
-The Outpost project is a Docker-based simulation, using containers to provide the various services necessary for managing the high-latency connection and performing the infrastructure automation.
-There are four service groups which compose the Outpost stack.
+The Outpost project is a Docker-based simulation, using containers to provide the various services necessary for managing the infrastructure automation and managing the high-latency connection and performing the infrastructure automation.
+There are three service groups which compose the Outpost stack.
 
-First, is the **Consumer** group, which consists of a `client` container that acts as the entrypoint to the process and a `docker` service running a Docker daemon for running the target services.
-When triggered, the `client` performs a randomised update to the target service version defined in the Terraform configuration, and then attempts to apply the new configuration.
+First is the main **Infrastructure-as-Code (IaC)** group that is centered on running the automation procedure described above.
+The heavy lifting is performed by the `iac_worker` container, which runs a Python script and acts as the entry point to the process (see "Try it yourself" below).
+A containerised Docker daemon runs in the `iac_docker` service and acts as the deployment target, with the target service itself accessible on host post 8080.
+This group also contains a low-latency-but-non-authoritative Docker image registry, `iac_registry`, that acts as the local source of truth for the Docker images to be deployed on the Outpost.
+These stored images can be examined using a visual explorer, `iac_images`, on host port 8000.
+There is no specific Git service - a suitably simple option could be found - instead the locally-authoritative Git repositories are "hosted" on a shared volume in the file system, `iac_git`.
+Since they are referenced as remote repositories using the `file://` protocol, rather than manipulated as local files, this compromise will not affect the operational process.
 
-The Terraform process attempts to pull the required containers from the **Registry** group, consisting of a Docker registry, `registry_main`, and a visual explorer for it, `registry_dashboard`, on host port 8000.
-This group provides a low-latency-but-non-authoritative container registry to act as the source for Outpost service deployments and allows these deployments to be automated using the standard Docker and Terraform tooling.
-
-However, the challenge arises when the registry does not hold a requested image.
-In this situation, the `client` detects from the `terraform apply` errors that a new image is required and makes a request to the **Gateway** group.
+When requesting the Git remote be updated from the authoritative source or that a missing Docker image be transferred to the registry, **Gateway** group is invoked.
 The group acts as a front for the high-latency connection and performs intelligent response handling on the data that it receives back.
-It consists of a Redis message queue, `gateway_messages`, to accept inbound requests from the Consumer group and a Python/Celery application, `gateway_worker`, to process those requests.
+For `git fetch` requests, when a response is received, it is used to update the state of the locally-authoritative Git repository, while for `docker pull` requests, the received image is pushed to the locally registry to make it available for deployment.
+The group consists of a Redis message queue, `gateway_messages`, to accept inbound requests from the IaC group and a Python/Celery application, `gateway_worker`, to process those requests.
 These are supported by another Docker daemon, `gateway_dockerd`, used to handle received Docker image transfers, and a Python/Flower instance, `gateway_dashboard`, for monitoring the Gateway task queue on host port 5556.
 
 When a new request is picked up by a Gateway Celery worker, it is very quickly passed on to the final service group, **Transmit & Receive (TxRx)**.
 This group simulates the high-latency connection itself, as well as the remote services that provide the authoritative source for service and configuration definitions.
 It is structured very similarly to the Gateway group, with a Redis message queue, `txrx_messages`, for accepting requests, and a Python/Celery application, `txrx_worker`, for processing those requests.
-There is also a Docker daemon, `gateway_dockerd`, so the worker can dynamically build target application images as required and a Python/Flower instance, `txrx_dashboard`, for monitoring the task queue, this time on host port 5555.
-However unlike the Gateway queue, the TxRx task queue has an induced delay (defaulting to 15 seconds) to reflect the communication lag involved.
-Once the delay has passed and the image has been built, the worker sends a response containing basic information to the Gateway and dumps the image to a shared directory (mocking large data transfers that are impractical to return directly).
+There is also a Docker daemon, `txrx_dockerd`, for building target application images and a Python/Flower instance, `txrx_dashboard`, for monitoring the task queue, this time on host port 5555.
+However, unlike the Gateway queue, the TxRx task queue has an induced delay (defaulting to 15 seconds) to reflect the communication lag involved.
+Once this delay has passed then one of two actions is taken.
+For Git requests, a randomised version update is applied to the target service in the Terraform configuration, committed, and pushed to a repository in the transfer directory\*.
+For Docker requests, an image with the requested name & version is dynamically created from the template and dumped to a flat file, again in the transfer directory.
+In both cases, metadata is returned in the Celery task result, but it would be impractical to transfer the full Git repository or Docker image in this way.
 
-On the return path, the Gateway worker picks up the task again, loads the returned image dump into the Gateway Docker daemon, and pushes it Outpost Docker registry.
-The new image will then be available for the client to access and the Gateway worker returns a success response.
-Finally, the client makes another attempt to apply the new configuration, which should now have all its requirements met and be successful itself.
-The simple target application is made available for inspection on host port 8080.
+On the return path, the Gateway worker receives the response from the TxRx group and accesses the data from the transfer directory.
+As appropriate, the changes are either pushed to the IaC Git directory to be fetched by the IaC worker, or loaded and pushed to the IaC image registry to be pulled by the Terraform/Docker process.
+Once the processing is complete, a response is passed back to the IaC worker, which then continues running the automation, and may request further information be made available by the Gateway as required.
+
+\* Transferring the latest Git commits as flat files would provide a better simulation of the high-latency transfer, but it is unclear how best to do this.
 
 
 ## Try it yourself
@@ -90,10 +108,12 @@ As a result, running Outpost requires access to a domain that you can generate T
 These are not hard requirements unlike the registry security and could be worked around for a different set up, but configuration changes will be necessary.
 
 Beyond that difficulty, the project is managed entirely within Docker Compose and the necessary services can be brought online with `docker-compose up`.
-Once the services are online, the simulated release/update process can be triggered with `docker-compose run --rm client python terraform.py`.
-_This process is randomised, so not all triggers will result in a new release._
-The active release version is stored in `terraform/main.tf` and the release process will generate Git diffs as this file is updated.
-To ignore those diffs, run `git update-index --skip-worktree terraform/main.tf`.
+Once the services are online, the simulated release/update process can be triggered with:
+```
+docker-compose run --rm client python run_updates.py
+```
+On the first run, the project will be initialised and a deployment made for version 1.0.0 of the target service, but _for subsequent runs the Git fetch process is randomised_.
+Some runs will not result in an update, while other will randomly bump the version deployed and will result in a request for the corresponding Docker image.
 
 \* Guidance on how to work around this issue would be very welcome.
 
@@ -106,6 +126,7 @@ In rough order of likely inclusion:
 * An interesting target service, rather than a bland testing page
 * Kubernetes as a deployment target, rather than simple Docker containers
 * A self-referential Terraform configuration which also includes the infrastructure components needed to run the core Outpost services
+* A high-latency implementation of `terraform init` (See [#5](https://github.com/JoeHitchen/Outpost/issues/5))
 
 
 ## Why not Outpost?
@@ -123,4 +144,7 @@ Blob transfer (as might be needed for a static Javascript frontend) is not addre
 Outpost is also built around a pull-based paradigm, where the Outpost requests information from the remote systems.
 The alternative would be a push-based process where the remote systems package everything up that the Outpost will need - system definitions, configurations, etc - into a single deployment package and transfer that to the Outpost in one go.
 This definitely offers advantages since the remote systems will have prior knowledge about what will be needed, but it also remove authority from the Outpost and offers no resolution path if the deployment package is unworkable.
+
+_Finally, Outpost is a proof-of-concept to fulfil personal curiosity and should not be considered in any way mature or production-ready.
+If you are involved in operations where this might be relevant, please do not trust random code from Github hacked together over a couple of weekends._
 
