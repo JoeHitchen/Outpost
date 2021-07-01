@@ -110,7 +110,7 @@ These are not hard requirements unlike the registry security and could be worked
 Beyond that difficulty, the project is managed entirely within Docker Compose and the necessary services can be brought online with `docker-compose up`.
 Once the services are online, the simulated release/update process can be triggered with:
 ```
-docker-compose run --rm client python run_updates.py
+docker-compose run --rm iac_worker python run_updates.py
 ```
 On the first run, the project will be initialised and a deployment made for version 1.0.0 of the target service, but _for subsequent runs the Git fetch process is randomised_.
 Some runs will not result in an update, while other will randomly bump the version deployed and will result in a request for the corresponding Docker image.
