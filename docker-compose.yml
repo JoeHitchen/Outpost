@@ -10,6 +10,7 @@ services:
       - GIT_HOST=file:///srv/git
       - GATEWAY_REQUEST=redis://gateway.outpost/0
       - GATEWAY_RESPONSE=redis://gateway.outpost/1
+      - GODEBUG=x509ignoreCN=0
       - TERRAFORM_DIR=/var/terraform
     volumes:
       - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
@@ -30,6 +31,7 @@ services:
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
+      - ./dockerd/daemon.json:/etc/docker/daemon.json
       - iac_dockerd:/var/lib/docker
   
   iac_registry:
@@ -38,11 +40,11 @@ services:
     hostname: registry.outpost
     volumes:
       - iac_registry:/var/lib/registry
-      - /etc/letsencrypt:/crt:ro
+      - ./certificates/:/certs/:ro
     environment:
       - REGISTRY_HTTP_ADDR=0.0.0.0:443
-      - REGISTRY_HTTP_TLS_CERTIFICATE=/crt/live/registry.outpost/fullchain.pem
-      - REGISTRY_HTTP_TLS_KEY=/crt/live/registry.outpost/privkey.pem
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/registry.fullchain.pem
+      - REGISTRY_HTTP_TLS_KEY=/certs/registry.privkey.pem
     networks:
       - default
       - gateway
@@ -56,6 +58,7 @@ services:
       - REGISTRY_HOST=registry.outpost
       - REGISTRY_PROTOCOL=https
       - REGISTRY_PORT=443
+      - SSL_VERIFY=false
     depends_on:
       - iac_registry
   
@@ -91,6 +94,7 @@ services:
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
+      - ./dockerd/daemon.json:/etc/docker/daemon.json
       - gateway_dockerd:/var/lib/docker
     networks:
       - gateway

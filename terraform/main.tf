@@ -24,6 +24,7 @@ provider "docker" {
 
 data "docker_registry_image" "target" {
   name = "${var.registry_host}/mock:1.0.0"
+  insecure_skip_verify = true
 }
 
 resource "docker_image" "target" {
