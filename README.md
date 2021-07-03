@@ -96,9 +96,9 @@ Once the processing is complete, a response is passed back to the IaC worker, wh
 
 
 ## Try it yourself
-
 The project is managed entirely within Docker Compose and the necessary services can be brought online with `docker-compose up`.
-Once the services are online, the simulated release/update process can be triggered with:
+There is no configuration required, but a `.env` file can be created from the template to change the value of `TXRX_DELAY` - the simulated round-trip communication time - from the default value of 15 seconds.
+Once the services are online, the release/update process can be triggered with:
 ```
 docker-compose run --rm iac_worker python run_updates.py
 ```
