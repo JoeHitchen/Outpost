@@ -5,11 +5,12 @@ services:
     build: outpost-py
     image: outpost-worker
     environment:
-      - DOCKER_HOST=dockerd.$DOMAIN:2375
-      - REGISTRY_HOST=registry.$DOMAIN
+      - DOCKER_HOST=dockerd.outpost:2375
+      - REGISTRY_HOST=registry.outpost
       - GIT_HOST=file:///srv/git
-      - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
-      - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
+      - GATEWAY_REQUEST=redis://gateway.outpost/0
+      - GATEWAY_RESPONSE=redis://gateway.outpost/1
+      - GODEBUG=x509ignoreCN=0
       - TERRAFORM_DIR=/var/terraform
     volumes:
       - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
@@ -23,26 +24,27 @@ services:
   iac_dockerd:
     image: docker:dind
     restart: always
-    hostname: dockerd.$DOMAIN
+    hostname: dockerd.outpost
     privileged: true
     ports:
       - 8080:8000
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
+      - ./dockerd/daemon.json:/etc/docker/daemon.json
       - iac_dockerd:/var/lib/docker
   
   iac_registry:
     image: registry
     restart: always
-    hostname: registry.$DOMAIN
+    hostname: registry.outpost
     volumes:
       - iac_registry:/var/lib/registry
-      - /etc/letsencrypt:/crt:ro
+      - ./certificates/:/certs/:ro
     environment:
       - REGISTRY_HTTP_ADDR=0.0.0.0:443
-      - REGISTRY_HTTP_TLS_CERTIFICATE=/crt/live/registry.$DOMAIN/fullchain.pem
-      - REGISTRY_HTTP_TLS_KEY=/crt/live/registry.$DOMAIN/privkey.pem
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/registry.fullchain.pem
+      - REGISTRY_HTTP_TLS_KEY=/certs/registry.privkey.pem
     networks:
       - default
       - gateway
@@ -53,16 +55,17 @@ services:
     ports:
       - 8000:80
     environment:
-      - REGISTRY_HOST=registry.$DOMAIN
+      - REGISTRY_HOST=registry.outpost
       - REGISTRY_PROTOCOL=https
       - REGISTRY_PORT=443
+      - SSL_VERIFY=false
     depends_on:
       - iac_registry
   
   gateway_messages:
     image: redis:alpine
     restart: always
-    hostname: gateway.$DOMAIN
+    hostname: gateway.outpost
     volumes:
       - gateway_messages:/data
     networks:
@@ -73,7 +76,7 @@ services:
     build: queue_ui
     image: outpost-queue-ui
     restart: always
-    command: --broker=redis://gateway.$DOMAIN/0 --persistent --db=/var/dashboard/tasks.db
+    command: --broker=redis://gateway.outpost/0 --persistent --db=/var/dashboard/tasks.db
     ports:
       - 5556:5555
     volumes:
@@ -86,11 +89,12 @@ services:
   gateway_dockerd:
     image: docker:dind
     restart: always
-    hostname: gateway-dockerd.$DOMAIN
+    hostname: gateway-dockerd.outpost
     privileged: true
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
     volumes:
+      - ./dockerd/daemon.json:/etc/docker/daemon.json
       - gateway_dockerd:/var/lib/docker
     networks:
       - gateway
@@ -101,13 +105,13 @@ services:
     restart: always
     command: celery --app=gateway worker --loglevel=info
     environment:
-      - DOCKER_HOST=gateway-dockerd.$DOMAIN:2375
-      - REGISTRY_HOST=registry.$DOMAIN
+      - DOCKER_HOST=gateway-dockerd.outpost:2375
+      - REGISTRY_HOST=registry.outpost
       - GIT_HOST=file:///srv/git
-      - GATEWAY_REQUEST=redis://gateway.$DOMAIN/0
-      - GATEWAY_RESPONSE=redis://gateway.$DOMAIN/1
-      - TXRX_REQUEST=redis://txrx.$DOMAIN/0
-      - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
+      - GATEWAY_REQUEST=redis://gateway.outpost/0
+      - GATEWAY_RESPONSE=redis://gateway.outpost/1
+      - TXRX_REQUEST=redis://txrx.outpost/0
+      - TXRX_RESPONSE=redis://txrx.outpost/1
       - TXRX_DELAY=$TXRX_DELAY
       - RX_DATA=/usr/rx
     volumes:
@@ -123,7 +127,7 @@ services:
   txrx_messages:
     image: redis:alpine
     restart: always
-    hostname: txrx.$DOMAIN
+    hostname: txrx.outpost
     volumes:
       - txrx_messages:/data
     networks:
@@ -134,7 +138,7 @@ services:
     build: queue_ui
     image: outpost-queue-ui
     restart: always
-    command: --broker=redis://txrx.$DOMAIN/0 --persistent=true --db=/var/dashboard/tasks.db
+    command: --broker=redis://txrx.outpost/0 --persistent=true --db=/var/dashboard/tasks.db
     ports:
       - 5555:5555
     volumes:
@@ -147,7 +151,7 @@ services:
   txrx_dockerd:
     image: docker:dind
     restart: always
-    hostname: txrx-dockerd.$DOMAIN
+    hostname: txrx-dockerd.outpost
     privileged: true
     environment:
       - DOCKER_TLS_CERTDIR=  # Disable TLS
@@ -162,11 +166,11 @@ services:
     restart: always
     command: celery --app=txrx worker --loglevel=info
     environment:
-      - DOCKER_HOST=txrx-dockerd.$DOMAIN:2375
+      - DOCKER_HOST=txrx-dockerd.outpost:2375
       - DOCKER_BUILD_DIR=/var/build/target
       - TERRAFORM_TEMPLATE_PATH=/src/terraform
-      - TXRX_REQUEST=redis://txrx.$DOMAIN/0
-      - TXRX_RESPONSE=redis://txrx.$DOMAIN/1
+      - TXRX_REQUEST=redis://txrx.outpost/0
+      - TXRX_RESPONSE=redis://txrx.outpost/1
       - TXRX_DELAY=$TXRX_DELAY
       - RX_DATA=/tmp
     volumes:

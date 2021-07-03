@@ -97,25 +97,13 @@ Once the processing is complete, a response is passed back to the IaC worker, wh
 
 ## Try it yourself
 
-Unfortunately, due to the [limitations of the Docker provider for Terraform](https://github.com/kreuzwerker/terraform-provider-docker/issues/135)*, the Outpost container registry must be configured with full HTTPS security - HTTP connections or self-signed TLS certificates are not accepted.
-As a result, running Outpost requires access to a domain that you can generate TLS certificates for and the configuration assumes that:
-* It is running on a Linux host
-* Let's Encrypt/Certbot is installed, and a certificate for `registry.<mydomain.tls>` is available in the standard location.
-  If you use Route53 as your DNS provider, then such a certificate can be generated with:
-  ```
-    sudo certbot certonly --dns-route53 -d registry.<mydomain.tls>
-  ```
-These are not hard requirements unlike the registry security and could be worked around for a different set up, but configuration changes will be necessary.
-
-Beyond that difficulty, the project is managed entirely within Docker Compose and the necessary services can be brought online with `docker-compose up`.
+The project is managed entirely within Docker Compose and the necessary services can be brought online with `docker-compose up`.
 Once the services are online, the simulated release/update process can be triggered with:
 ```
 docker-compose run --rm iac_worker python run_updates.py
 ```
 On the first run, the project will be initialised and a deployment made for version 1.0.0 of the target service, but _for subsequent runs the Git fetch process is randomised_.
 Some runs will not result in an update, while other will randomly bump the version deployed and will result in a request for the corresponding Docker image.
-
-\* Guidance on how to work around this issue would be very welcome.
 
 
 ## Future plans
