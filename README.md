@@ -105,6 +105,8 @@ docker-compose run --rm iac_worker python run_updates.py
 On the first run, the project will be initialised and a deployment made for version 1.0.0 of the target service, but _for subsequent runs the Git fetch process is randomised_.
 Some runs will not result in an update, while other will randomly bump the version deployed and will result in a request for the corresponding Docker image.
 
+For convenience, the `full_reset.sh` script is provided to quickly tear down the whole stack and rebuild it from scratch.
+
 
 ## Future plans
 
