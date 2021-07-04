@@ -13,7 +13,6 @@ services:
       - GODEBUG=x509ignoreCN=0
       - TERRAFORM_DIR=/var/terraform
     volumes:
-      - ./outpost-py/version_number.txt:/usr/src/app/version_number.txt
       - iac_terraform:/var/terraform
       - iac_git:/srv/git
     depends_on:
