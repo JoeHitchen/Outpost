@@ -88,9 +88,7 @@ def _transfer_git_history(repo_name):
         
         repo = git.Repo.init(repo_path, mkdir = True)
         version = '1.0.0'
-        
-        for file in os.listdir(os.environ.get('TERRAFORM_TEMPLATE_PATH')):
-            shutil.copy2(os.path.join(os.environ.get('TERRAFORM_TEMPLATE_PATH'), file), repo_path)
+        shutil.copytree(os.environ.get('TERRAFORM_TEMPLATE_PATH'), repo_path, dirs_exist_ok = True)
         
     # Commit changes
     if (not repo.branches) or repo.is_dirty():
