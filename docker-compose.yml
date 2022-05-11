@@ -72,7 +72,7 @@ services:
       - default
   
   gateway_dashboard:
-    build: queue_ui
+    build: queue-ui
     image: outpost-queue-ui
     restart: always
     command: --broker=redis://gateway.outpost/0 --persistent --db=/var/dashboard/tasks.db
@@ -134,7 +134,7 @@ services:
       - gateway
   
   txrx_dashboard:
-    build: queue_ui
+    build: queue-ui
     image: outpost-queue-ui
     restart: always
     command: --broker=redis://txrx.outpost/0 --persistent=true --db=/var/dashboard/tasks.db
