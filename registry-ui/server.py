@@ -24,7 +24,7 @@ class RegistryUiServer(BaseHTTPRequestHandler):
         
         # Generate image boxes
         images = utils.get_registry_images(
-            os.environ.get('REGISTRY_HOST', ''),
+            'https://' + os.environ.get('REGISTRY_HOST', ''),
             verify_ssl = os.environ.get('REGISTRY_VERIFY_SSL', '').lower() != 'false',
         )
         
