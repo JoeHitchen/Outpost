@@ -10,8 +10,8 @@ serverPort = 8080
 class RegistryUiServer(BaseHTTPRequestHandler):
     
     image_box_template = '''
-          <div class="list-group-item list-group-item-action d-flex justify-content-between block align-items-center">
-            <div class="fs-3">{image}:{tag}</div>
+          <div class="list-group-item list-group-item-action {box_styling}">
+            <div class="fs-3 pb-1">{image}:{tag}</div>
             <div>
               <div>{created}</div>
               <div class="small text-muted text-end">{digest:15}</div>
@@ -31,6 +31,7 @@ class RegistryUiServer(BaseHTTPRequestHandler):
         image_boxes = []
         for image in images:
             image['digest'] = image['digest'][:15]
+            image['box_styling'] = 'd-flex justify-content-between align-items-center'
             image_boxes.append(self.image_box_template.format(**image))
         
         # Generate full page
