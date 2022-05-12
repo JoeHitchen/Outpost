@@ -1,0 +1,7 @@
+flake8
+flake8-pyi
+flake8-commas
+flake8-quotes
+flake8-import-order
+git+https://JoeHitchen@bitbucket.org/JoeHitchen/flake8-import-order-pep8app.git
+flake8-comprehensions
