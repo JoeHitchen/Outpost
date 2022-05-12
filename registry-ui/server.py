@@ -9,6 +9,7 @@ serverPort = 8080
 
 class RegistryUiServer(BaseHTTPRequestHandler):
     
+    box_styling = 'd-flex justify-content-between align-items-center'
     image_box_template = '''
           <div class="list-group-item list-group-item-action {box_styling}">
             <div class="fs-3 pb-1">{image}:{tag}</div>
@@ -19,7 +20,7 @@ class RegistryUiServer(BaseHTTPRequestHandler):
           </div>
     '''
     
-    def do_GET(self):
+    def do_GET(self) -> None:
         """Handle all GET requests."""
         
         # Generate image boxes
@@ -31,8 +32,10 @@ class RegistryUiServer(BaseHTTPRequestHandler):
         image_boxes = []
         for image in images:
             image['digest'] = image['digest'][:15]
-            image['box_styling'] = 'd-flex justify-content-between align-items-center'
-            image_boxes.append(self.image_box_template.format(**image))
+            image_boxes.append(self.image_box_template.format(
+                box_styling = 'd-flex justify-content-between align-items-center',
+                **image,
+            ))
         
         # Generate full page
         with open('registry_page.html') as file:
