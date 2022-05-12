@@ -3,8 +3,8 @@ name: Validate Outpost python
 on: push
 
 jobs:
-  validate:
-    name: Validate main python application
+  validate-outpost-py:
+    name: Validate main Outpost application
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
@@ -19,4 +19,27 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements_linting.txt
           flake8
+  
+  validate-registry-ui:
+    name: Validate Registry UI application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Linting
+        run: |
+          cd registry-ui
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements_linting.txt
+          flake8
+      - name: Testing
+        run: |
+          cd registry-ui
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m unittest
 

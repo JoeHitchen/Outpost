@@ -48,16 +48,15 @@ services:
       - default
       - gateway
   
-  iac_images:
-    image: parabuzzle/craneoperator:latest
+  iac_registry_ui:
+    build: registry-ui
+    image: outpost-registry-ui
     restart: always
     ports:
-      - 8000:80
+      - 8880:8080
     environment:
       - REGISTRY_HOST=registry.outpost
-      - REGISTRY_PROTOCOL=https
-      - REGISTRY_PORT=443
-      - SSL_VERIFY=false
+      - REGISTRY_VERIFY_SSL=false
     depends_on:
       - iac_registry
   
