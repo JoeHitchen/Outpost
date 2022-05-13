@@ -1,14 +1,9 @@
 from datetime import datetime
 from dataclasses import dataclass
-from typing import cast, List, TypedDict
+from typing import cast, List
 import json
 
 import requests
-
-
-class ImageMetadata(TypedDict):
-    created: datetime
-    digest: str
 
 
 @dataclass
@@ -52,17 +47,19 @@ class DockerRegistryClient():
         return cast(List[str], self._make_api_call(f'{repository}/tags/list').json()['tags'])
     
     
-    def get_image_metadata(self, repository: str, tag: str) -> ImageMetadata:
-        """Provides the useful metadata for a repository/tag combination."""
+    def get_image(self, repository: str, tag: str) -> Image:
+        """Returns an object describing the Image available."""
         
         response = self._make_api_call(f'{repository}/manifests/{tag}')
         created_string = json.loads(response.json()['history'][0]['v1Compatibility'])['created']
         
-        return {
-            'created': datetime.fromisoformat(created_string.split('.')[0]),
-            'digest': response.headers.get('Docker-Content-Digest', ''),
+        return Image(
+            name = repository,
+            tag = tag,
+            created = datetime.fromisoformat(created_string.split('.')[0]),
+            digest = response.headers.get('Docker-Content-Digest', ''),
             # ^ N.B. This is NOT the local "Image ID". To compare run `docker image ls --digests`
-        }
+        )
 
 
 def get_registry_images(host: str, verify_ssl: bool = True) -> List[Image]:
@@ -74,16 +71,7 @@ def get_registry_images(host: str, verify_ssl: bool = True) -> List[Image]:
         tags = registry.list_repository_tags(repository)
         tags.sort(reverse = True)
         
-        for tag in tags:
-            
-            metadata = registry.get_image_metadata(repository, tag)
-            
-            images.append(Image(
-                name = repository,
-                tag = tag,
-                created = metadata['created'],
-                digest = metadata['digest'],
-            ))
+        images.extend(registry.get_image(repository, tag) for tag in tags)
     
     return images
 

@@ -147,25 +147,25 @@ class Test__DockerRegistryClient(TestCase):
     
     
     @patch('requests.get', side_effect = registry_api_mock(host))
-    def test__get_image_metadata__success(self, requests_mock):
-        """Retrieves the interesting metadata for an image/tag combination."""
+    def test__get_image__success(self, requests_mock):
+        """Returns an Image object (including metadata) for an image/tag combination."""
         
         client = utils.DockerRegistryClient(self.host)
         
         self.assertEqual(
-            client.get_image_metadata('mock', '1.0.1'),
-            {'created': CREATED, 'digest': DIGEST},
+            client.get_image('mock', '1.0.1'),
+            utils.Image(name = 'mock', tag = '1.0.1', created = CREATED, digest = DIGEST),
         )
     
     
     @patch('requests.get', side_effect = registry_api_mock(host, should_error = True))
-    def test__get_image_metadata_error(self, requests_mock):
-        """Raises an error if the request was not successful."""
+    def test__get_image__error(self, requests_mock):
+        """Raises an error if the metadata request was not successful."""
         
         client = utils.DockerRegistryClient(self.host)
         
         with self.assertRaises(requests.HTTPError):
-            client.get_image_metadata('mock', '1.0.1')
+            client.get_image('mock', '1.0.1')
 
 
 
