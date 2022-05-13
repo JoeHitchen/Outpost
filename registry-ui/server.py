@@ -7,18 +7,23 @@ hostName = '0.0.0.0'
 serverPort = 8080
 
 
-class RegistryUiServer(BaseHTTPRequestHandler):
+def create_image_box(image: utils.Image) -> str:
+    """Helper function for creating the HTML to display individual images."""
     
     box_styling = 'd-flex justify-content-between align-items-center'
-    image_box_template = '''
+    return '''
           <div class="list-group-item list-group-item-action {box_styling}">
             <div class="fs-3 pb-1">{image}:{tag}</div>
             <div>
               <div>{created}</div>
-              <div class="small text-muted text-end">{digest:15}</div>
+              <div class="small text-muted text-end">{digest:.15s}</div>
             </div>
           </div>
-    '''
+    '''.format(box_styling = box_styling, **image)
+
+
+class RegistryUiServer(BaseHTTPRequestHandler):
+    
     
     def do_GET(self) -> None:
         """Handle all GET requests."""
@@ -28,14 +33,7 @@ class RegistryUiServer(BaseHTTPRequestHandler):
             'https://' + os.environ.get('REGISTRY_HOST', ''),
             verify_ssl = os.environ.get('REGISTRY_VERIFY_SSL', '').lower() != 'false',
         )
-        
-        image_boxes = []
-        for image in images:
-            image['digest'] = image['digest'][:15]
-            image_boxes.append(self.image_box_template.format(
-                box_styling = 'd-flex justify-content-between align-items-center',
-                **image,
-            ))
+        image_boxes = [create_image_box(image) for image in images]
         
         # Generate full page
         with open('registry_page.html') as file:
