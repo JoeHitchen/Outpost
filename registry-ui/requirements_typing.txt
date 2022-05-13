@@ -1,0 +1,4 @@
+mypy
+
+# Type stubs
+types-requests
