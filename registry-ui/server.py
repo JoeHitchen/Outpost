@@ -23,7 +23,7 @@ def create_image_box(image: utils.Image) -> str:
 
 
 class RegistryUiServer(BaseHTTPRequestHandler):
-    
+    """A simple server class for rendering the contents of a registry."""
     
     def do_GET(self) -> None:
         """Handle all GET requests."""

@@ -15,6 +15,7 @@ class Image():
 
 
 class DockerRegistryClient():
+    """Provides an interface for interacting with the Docker registry API."""
     
     def __init__(self, host: str, verify_ssl: bool = True):
         """Prepares the client for future actions."""
@@ -63,6 +64,8 @@ class DockerRegistryClient():
 
 
 def get_registry_images(host: str, verify_ssl: bool = True) -> List[Image]:
+    """Returns a list of images available on a registry server, ordered by tag."""
+    
     registry = DockerRegistryClient(host, verify_ssl)
     
     images: List[Image] = []
