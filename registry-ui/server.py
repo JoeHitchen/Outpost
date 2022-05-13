@@ -13,13 +13,13 @@ def create_image_box(image: utils.Image) -> str:
     box_styling = 'd-flex justify-content-between align-items-center'
     return '''
           <div class="list-group-item list-group-item-action {box_styling}">
-            <div class="fs-3 pb-1">{image}:{tag}</div>
+            <div class="fs-3 pb-1">{image.name}:{image.tag}</div>
             <div>
-              <div>{created}</div>
-              <div class="small text-muted text-end">{digest:.15s}</div>
+              <div>{image.created}</div>
+              <div class="small text-muted text-end">{image.digest:.15s}</div>
             </div>
           </div>
-    '''.format(box_styling = box_styling, **image)
+    '''.format(image = image, box_styling = box_styling)
 
 
 class RegistryUiServer(BaseHTTPRequestHandler):

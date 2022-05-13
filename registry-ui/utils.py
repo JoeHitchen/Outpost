@@ -1,4 +1,5 @@
 from datetime import datetime
+from dataclasses import dataclass
 from typing import cast, List, TypedDict
 import json
 
@@ -10,8 +11,9 @@ class ImageMetadata(TypedDict):
     digest: str
 
 
-class Image(TypedDict):
-    image: str
+@dataclass
+class Image():
+    name: str
     tag: str
     created: datetime
     digest: str
@@ -76,13 +78,12 @@ def get_registry_images(host: str, verify_ssl: bool = True) -> List[Image]:
             
             metadata = registry.get_image_metadata(repository, tag)
             
-            images.append({
-                'image': repository,
-                'tag': tag,
-                'created': metadata['created'],
-                'digest': metadata['digest'],
-            })
+            images.append(Image(
+                name = repository,
+                tag = tag,
+                created = metadata['created'],
+                digest = metadata['digest'],
+            ))
     
     return images
-
 

@@ -181,11 +181,11 @@ class Test__GetRegistryImages(TestCase):
         self.assertEqual(
             images,
             [
-                {'image': 'mock', 'tag': '1.1.0', 'created': CREATED, 'digest': DIGEST},
-                {'image': 'mock', 'tag': '1.0.2', 'created': CREATED, 'digest': DIGEST},
-                {'image': 'mock', 'tag': '1.0.1', 'created': CREATED, 'digest': DIGEST},
-                {'image': 'mock', 'tag': '1.0.0', 'created': CREATED, 'digest': DIGEST},
-                {'image': 'test', 'tag': '2.0.1', 'created': CREATED, 'digest': DIGEST},
+                utils.Image(name = 'mock', tag = '1.1.0', created = CREATED, digest = DIGEST),
+                utils.Image(name = 'mock', tag = '1.0.2', created = CREATED, digest = DIGEST),
+                utils.Image(name = 'mock', tag = '1.0.1', created = CREATED, digest = DIGEST),
+                utils.Image(name = 'mock', tag = '1.0.0', created = CREATED, digest = DIGEST),
+                utils.Image(name = 'test', tag = '2.0.1', created = CREATED, digest = DIGEST),
             ],
         )
 
