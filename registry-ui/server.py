@@ -57,14 +57,14 @@ class RegistryUiServer(BaseHTTPRequestHandler):
         )
         image_boxes = [create_image_box(image) for image in images]
         
-        containers = utils.get_running_containers(os.environ.get('DOCKER_HOST', ''))
+        containers = utils.get_containers(os.environ.get('DOCKER_HOST', ''))
         container_boxes = [create_container_box(container) for container in containers]
         
         # Generate full page
         with open('registry_page.html') as file:
             page = file.read().format(
                 registry_contents = ''.join(image_boxes),
-                running_containers = ''.join(container_boxes),
+                containers = ''.join(container_boxes),
             )
         
         # Send reponse

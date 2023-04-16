@@ -88,7 +88,7 @@ def get_registry_images(host: str, verify_ssl: bool = True) -> List[Image]:
     return images
 
 
-def get_running_containers(host: str) -> List[Container]:
+def get_containers(host: str) -> List[Container]:
     
     server = docker.DockerClient(base_url = host)
     
