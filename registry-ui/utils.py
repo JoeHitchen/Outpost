@@ -4,6 +4,7 @@ from typing import cast, List
 import json
 
 import requests
+import docker
 
 
 @dataclass
@@ -12,6 +13,14 @@ class Image():
     tag: str
     created: datetime
     digest: str
+
+
+@dataclass
+class Container():
+    name: str
+    image: str
+    created: datetime
+    status: str
 
 
 class DockerRegistryClient():
@@ -77,4 +86,21 @@ def get_registry_images(host: str, verify_ssl: bool = True) -> List[Image]:
         images.extend(registry.get_image(repository, tag) for tag in tags)
     
     return images
+
+
+def get_running_containers(host: str) -> List[Container]:
+    
+    server = docker.DockerClient(base_url = host)
+    
+    containers = []
+    for container in server.containers.list():
+        
+        containers.append(Container(
+            name = container.name,
+            image = container.image.tags[0],
+            created = datetime.fromisoformat(container.attrs['Created'].split('.')[0]),
+            status = container.status,
+        ))
+    
+    return containers
 
