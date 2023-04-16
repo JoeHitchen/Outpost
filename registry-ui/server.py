@@ -22,6 +22,28 @@ def create_image_box(image: utils.Image) -> str:
     '''.format(image = image, box_styling = box_styling)
 
 
+def create_container_box(container: utils.Container) -> str:
+    """Helper function for creating the HTML to display individual containers."""
+    
+    status_colour = 'success' if container.status == 'running' else 'danger'
+    return '''
+          <div class="list-group-item list-group-item-action {box_styling}">
+            <div class="mb-2">
+              <span style="width: 1em; height: 1em" class="{status_styling}"></span>
+              <span class="fs-3">{container.name}</span>
+            </div>
+            <div>
+              <div>{container.image}</div>
+              <div class="small text-muted text-end">{container.created}</div>
+            </div>
+          </div>
+    '''.format(
+        container = container,
+        box_styling = 'd-flex justify-content-between align-items-center',
+        status_styling = f'bg-{status_colour} d-inline-block rounded-circle',
+    )
+
+
 class RegistryUiServer(BaseHTTPRequestHandler):
     """A simple server class for rendering the contents of a registry."""
     
@@ -35,9 +57,15 @@ class RegistryUiServer(BaseHTTPRequestHandler):
         )
         image_boxes = [create_image_box(image) for image in images]
         
+        containers = utils.get_running_containers(os.environ.get('DOCKER_HOST', ''))
+        container_boxes = [create_container_box(container) for container in containers]
+        
         # Generate full page
         with open('registry_page.html') as file:
-            page = file.read().format(registry_contents = ''.join(image_boxes))
+            page = file.read().format(
+                registry_contents = ''.join(image_boxes),
+                running_containers = ''.join(container_boxes),
+            )
         
         # Send reponse
         self.send_response(200)
