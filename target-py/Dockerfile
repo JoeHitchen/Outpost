@@ -1,4 +1,4 @@
-FROM python:3.8-alpine
+FROM python:3.11-alpine
 
 ARG IMAGE_NAME=mock:0.0.2
 ENV PYTHONDONTWRITEBYTECODE 1
