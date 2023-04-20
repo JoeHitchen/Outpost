@@ -48,9 +48,9 @@ services:
       - default
       - gateway
   
-  iac_registry_ui:
-    build: registry-ui
-    image: outpost-registry-ui
+  iac_dashboard:
+    build: dashboard
+    image: outpost-dashboard
     restart: always
     ports:
       - 8880:8080

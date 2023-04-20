@@ -21,7 +21,7 @@ jobs:
           flake8
   
   validate-registry-ui:
-    name: Validate Registry UI application
+    name: Validate Dashboard application
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
@@ -32,19 +32,19 @@ jobs:
         uses: actions/checkout@v2
       - name: Linting
         run: |
-          cd registry-ui
+          cd dashboard
           python -m pip install --upgrade pip
           python -m pip install -r requirements_linting.txt
           flake8
       - name: Typing
         run: |
-          cd registry-ui
+          cd dashboard
           python -m pip install --upgrade pip
           python -m pip install -r requirements_typing.txt
           mypy
       - name: Testing
         run: |
-          cd registry-ui
+          cd dashboard
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m unittest
