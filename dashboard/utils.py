@@ -89,6 +89,7 @@ def get_registry_images(host: str, verify_ssl: bool = True) -> List[Image]:
 
 
 def get_containers(host: str) -> List[Container]:
+    """Returns a list of the containers (active or stopped) on the Docker host."""
     
     server = docker.DockerClient(base_url = host)
     
