@@ -1,6 +1,7 @@
 from datetime import datetime
 from unittest import TestCase
 from unittest.mock import patch
+from dataclasses import dataclass
 
 import requests
 
@@ -54,6 +55,44 @@ def registry_api_mock(host, should_error = False):
             raise requests.HTTPError
         
     return MockResponse
+
+
+
+class MockDocker():
+    
+    def __init__(self, base_url):
+        self.containers = self.Containers()
+    
+    @dataclass
+    class MockImage():
+        tags: list[bool]
+    
+    @dataclass
+    class MockContainer():
+        name: str
+        image: 'MockDocker.MockImage'
+        status: str
+        attrs: dict
+    
+    container_examples = {
+        'image': MockContainer(
+            name = 'mock_container',
+            image = MockImage(tags = ['some_image:tag']),
+            status = 'running',
+            attrs = {'Created': CREATED_STR},
+        ),
+        'thing': MockContainer(
+            name = 'other_container',
+            image = MockImage(tags = ['a_thing:latest']),
+            status = 'exited',
+            attrs = {'Created': CREATED_STR},
+        ),
+    }
+    
+    class Containers():
+        def list(self):
+            return [MockDocker.container_examples['image'], MockDocker.container_examples['thing']]
+
 
 
 class Test__DockerRegistryClient(TestCase):
@@ -188,4 +227,29 @@ class Test__GetRegistryImages(TestCase):
                 utils.Image(name = 'test', tag = '2.0.1', created = CREATED, digest = DIGEST),
             ],
         )
+
+
+
+class Test__GetContainers(TestCase):
+    
+    host = 'https://dockerd.outpost-iac.uk:2375'
+    
+    @patch('docker.DockerClient', new = MockDocker)
+    def test__success(self):
+        
+        container_1 = utils.Container(
+            name = 'mock_container',
+            image = 'some_image:tag',
+            status = 'running',
+            created = CREATED,
+        )
+        container_2 = utils.Container(
+            name = 'other_container',
+            image = 'a_thing:latest',
+            status = 'exited',
+            created = CREATED,
+        )
+        
+        containers = utils.get_containers(self.host)
+        self.assertEqual(containers, [container_1, container_2])
 

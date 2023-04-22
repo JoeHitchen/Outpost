@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Outpost Image Registry</title>
+<title>Outpost Dashboard</title>
 
 <!-- Bootstrap CSS -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,21 +14,30 @@
 <body>
   <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/">Outpost Image Registry</a>
+      <a class="navbar-brand" href="/">Outpost Dashboard</a>
     </div>
   </nav>
   <br/>
 
   <div class="container">
     <div class="row">
-      <div class="col-md-6 col-xl-8"></div>
+      <div class="col-md-6 col-xl-8">
+        <div class="card">
+          <div class="card-header fs-4">Containers</div>
+          <div class="list-group list-group-flush">
+            {containers}
+          </div>
+        </div>
+      </div>
       <div class="col-md-6 col-xl-4">
-        <div class="list-group">
-          {registry_contents}
+        <div class="card">
+          <div class="card-header fs-4">Image Registry</div>
+          <div class="list-group list-group-flush">
+            {registry_contents}
+          </div>
         </div>
       </div>
     </div>
-
   </div>
 </body>
 </html>

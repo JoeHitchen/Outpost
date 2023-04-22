@@ -48,15 +48,16 @@ services:
       - default
       - gateway
   
-  iac_registry_ui:
-    build: registry-ui
-    image: outpost-registry-ui
+  iac_dashboard:
+    build: dashboard
+    image: outpost-dashboard
     restart: always
     ports:
       - 8880:8080
     environment:
       - REGISTRY_HOST=registry.outpost
       - REGISTRY_VERIFY_SSL=false
+      - DOCKER_HOST=dockerd.outpost:2375
     depends_on:
       - iac_registry
   
