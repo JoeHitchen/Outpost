@@ -22,7 +22,7 @@ def create_image_box(image: utils.Image) -> str:
     '''.format(image = image, box_styling = box_styling)
 
 
-def create_image_boxes() -> list[str]:
+def create_image_boxes() -> str:
     """Loads and generates the HTML for the registry images."""
     
     images = utils.get_registry_images(
@@ -30,16 +30,16 @@ def create_image_boxes() -> list[str]:
         verify_ssl = os.environ.get('REGISTRY_VERIFY_SSL', '').lower() != 'false',
     )
     if images:
-        return [create_image_box(image) for image in images]
+        return ''.join(create_image_box(image) for image in images)
     
-    return ['''
+    return '''
           <div class="list-group-item list-group-item-action {box_styling} p-2">
             <div class="fs-5 ms-2">{message}</div>
           </div>
     '''.format(
         message = 'No images to show',
         box_styling = 'd-flex justify-content-between align-items-center',
-    )]
+    )
 
 
 def create_container_box(container: utils.Container) -> str:
@@ -64,15 +64,15 @@ def create_container_box(container: utils.Container) -> str:
     )
 
 
-def create_container_boxes() -> list[str]:
+def create_container_boxes() -> str:
     """Loads and generates the HTML for the server containers."""
     
     containers = utils.get_containers(os.environ.get('DOCKER_HOST', ''))
     
     if containers:
-        return [create_container_box(container) for container in containers]
+        return ''.join(create_container_box(container) for container in containers)
     
-    return ['''
+    return '''
       <div class="list-group-item list-group-item-action {box_styling} p-2">
         <div>
           <span style="width: 1em; height: 1em" class="{status_styling}"></span>
@@ -83,7 +83,18 @@ def create_container_boxes() -> list[str]:
         message = 'No containers to show',
         box_styling = 'd-flex justify-content-between align-items-center',
         status_styling = 'bg-danger d-inline-block rounded-circle mx-2',
-    )]
+    )
+
+
+def create_index() -> str:
+    """Creates the main dashboard page."""
+    
+    with open('registry_page.html') as file:
+        return file.read().format(
+            registry_contents = create_image_boxes(),
+            containers = create_container_boxes(),
+        )
+    
 
 
 class RegistryUiServer(BaseHTTPRequestHandler):
@@ -92,23 +103,17 @@ class RegistryUiServer(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         """Handle all GET requests."""
         
-        self.index()
-    
-    
-    def index(self) -> None:
-        
-        # Generate full page
-        with open('registry_page.html') as file:
-            page = file.read().format(
-                registry_contents = ''.join(create_image_boxes()),
-                containers = ''.join(create_container_boxes()),
-            )
+        # Get content function
+        content_func = {
+            '/images/': create_image_boxes,
+            '/containers/': create_container_boxes,
+        }.get(self.path, create_index)
         
         # Send reponse
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        self.wfile.write(bytes(page, 'utf-8'))
+        self.wfile.write(bytes(content_func(), 'utf-8'))
 
 
 if __name__ == '__main__':
