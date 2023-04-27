@@ -11,6 +11,73 @@
 <!-- Bootstrap CSS -->
 
 <script src="https://unpkg.com/htmx.org@1.9.0"></script>
+<script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+<style type="text/css">
+  .order-status-bar {{
+    /* hstack */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-self: stretch;
+  }}
+  
+  .order-status-bar > div {{
+    flex: 1;
+    align-self: stretch;
+    margin-top: -0.5em;  /* Compensate for connector bar width */
+    
+    text-align: center;
+  }}
+  
+  .order-status-bar > div:before {{
+    display: block;
+    height: 0.5em;
+    width: 0%;
+    
+    position: relative;
+    top: 1.25em;
+    right: 50%;
+    
+    background: #6c757d;  /* bg-secondary */
+    content: ' ';
+  }}
+  
+  .order-status-bar > div:not(:first-child):before {{
+    width: 100%;
+  }}
+  
+  .order-status-icon {{
+    display: inline-flex;
+    width: 2em;
+    height: 2em;
+    
+    position: relative;
+    padding: 0.3em;
+    padding-top: 0.1em;
+    z-index: 1;
+    border-radius: 50%;
+    
+    background: #6c757d;  /* bg-secondary */
+    color: #f8f9fa;  /* text-light */
+    text-align: center;
+    ;
+  }}
+  
+  .order-status-icon svg {{
+    width: 1.5em;
+    height: 1.5em;
+    
+    position: relative;
+    left: 0.25em;
+    top: 0.15em;
+  }}
+  
+  .order-status-active .order-status-icon,
+  .order-status-active.order-status-active:before {{
+    background: #0d6efd;  /* bg-primary */
+  }}
+</style>
 
 </head>
 
@@ -25,6 +92,37 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 col-xl-8">
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fs-4">Outpost Process</span>
+          </div>
+          <div id="process" class="card-body order-status-bar">
+            <div class="order-status-active">
+              <span class="order-status-icon iconify" data-icon="mdi:cloud-upload"></span>
+              <div>Request Configuration</div>
+            </div>
+            <div class="order-status-active">
+              <span class="order-status-icon iconify" data-icon="mdi:cloud-download"></span>
+              <div>Configuration Transmitted</div>
+            </div>
+            <div class="order-status-active">
+              <span class="order-status-icon iconify" data-icon="mdi:cloud-upload"></span>
+              <div>Request<br/>Resources</div>
+            </div>
+            <div class="order-status-active">
+              <span class="order-status-icon iconify" data-icon="mdi:cloud-download"></span>
+              <div>Resources Transmitted</div>
+            </div>
+            <div class="order-status-active">
+              <span class="order-status-icon iconify" data-icon="mdi:cloud-refresh-variant"></span>
+              <div>Applying<br/>Update</div>
+            </div>
+            <div class="order-status-active">
+              <span class="order-status-icon iconify" data-icon="mdi:cloud-check-variant"></span>
+              <div>Update<br/>completed</div>
+            </div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fs-4">Containers</span>
