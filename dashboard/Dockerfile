@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY --chown=python . .
 
 USER python
-ENTRYPOINT ["python", "server.py"]
+ENTRYPOINT ["flask", "--app", "server", "run"]
 

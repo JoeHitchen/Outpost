@@ -51,6 +51,7 @@ services:
   iac_dashboard:
     build: dashboard
     image: outpost-dashboard
+    command: -h 0.0.0.0 -p 8080
     restart: always
     ports:
       - 8880:8080
