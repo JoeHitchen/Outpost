@@ -1,10 +1,22 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
+
+from flask import Flask
 
 import utils
 
-hostName = '0.0.0.0'
-serverPort = 8080
+
+server = Flask(__name__)
+
+
+@server.route('/')
+def index() -> str:
+    """Creates the main dashboard page."""
+    
+    with open('registry_page.html') as file:
+        return file.read().format(
+            registry_contents = create_image_boxes(),
+            containers = create_container_boxes(),
+        )
 
 
 def create_image_box(image: utils.Image) -> str:
@@ -22,6 +34,7 @@ def create_image_box(image: utils.Image) -> str:
     '''.format(image = image, box_styling = box_styling)
 
 
+@server.route('/images/')
 def create_image_boxes() -> str:
     """Loads and generates the HTML for the registry images."""
     
@@ -64,6 +77,7 @@ def create_container_box(container: utils.Container) -> str:
     )
 
 
+@server.route('/containers/')
 def create_container_boxes() -> str:
     """Loads and generates the HTML for the server containers."""
     
@@ -84,48 +98,4 @@ def create_container_boxes() -> str:
         box_styling = 'd-flex justify-content-between align-items-center',
         status_styling = 'bg-danger d-inline-block rounded-circle mx-2',
     )
-
-
-def create_index() -> str:
-    """Creates the main dashboard page."""
-    
-    with open('registry_page.html') as file:
-        return file.read().format(
-            registry_contents = create_image_boxes(),
-            containers = create_container_boxes(),
-        )
-    
-
-
-class RegistryUiServer(BaseHTTPRequestHandler):
-    """A simple server class for rendering the contents of a registry."""
-    
-    def do_GET(self) -> None:
-        """Handle all GET requests."""
-        
-        # Get content function
-        content_func = {
-            '/images/': create_image_boxes,
-            '/containers/': create_container_boxes,
-        }.get(self.path, create_index)
-        
-        # Send reponse
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write(bytes(content_func(), 'utf-8'))
-
-
-if __name__ == '__main__':
-    
-    webServer = HTTPServer((hostName, serverPort), RegistryUiServer)
-    print('Server started http://%s:%s' % (hostName, serverPort))
-
-    try:
-        webServer.serve_forever()
-    except KeyboardInterrupt:
-        pass
-
-    webServer.server_close()
-    print('Server stopped.')
 

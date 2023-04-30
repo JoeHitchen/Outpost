@@ -1,4 +1,5 @@
 mypy
 
 # Type stubs
+types-flask
 types-requests
