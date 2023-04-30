@@ -13,80 +13,80 @@
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
 
 <style type="text/css">
-  :root {{
+  :root {
     --bs-primary: #cccc6a;
     --bs-primary-rgb: 204, 204, 106;
     --bs-secondary: #2b3639;
     --bs-secondary-rgb: 43, 54, 57;
-  }}
+  }
   
-  .navbar {{
+  .navbar {
     background: #cccc6a;
     color: 2b3639;
-  }}
+  }
   
-  .navbar > div {{
+  .navbar > div {
     padding-left: 0.5em;
     padding-right: 0.5em;
-  }}
+  }
   
-  .navbar-brand {{
+  .navbar-brand {
     padding-top: 0em;
     padding-bottom: 0em;
-  }}
+  }
   
-  .navbar svg {{
+  .navbar svg {
     height: 2.5em;
     width: 2.5em;
-  }}
+  }
   
-  .btn {{
+  .btn {
     padding-left: 0.25em;
     padding-right: 0.25em;
-  }}
+  }
   
-  .btn svg {{
+  .btn svg {
     height: 1.75em;
     width: 1.75em;
-  }}
+  }
   
-  .btn-primary {{
+  .btn-primary {
     background: #cccc6a;
     border: #cccc6a;
-  }}
+  }
   
-  .btn-primary:hover, .btn-primary:active {{
+  .btn-primary:hover, .btn-primary:active {
     background: #b8b85f;
     border: #b8b85f;
-  }}
+  }
   
-  .btn-primary:focus {{
+  .btn-primary:focus {
     background: #b8b85f;
     border: #b8b85f;
     box-shadow: 0 0 0 .25rem rgba(204, 204, 106, .5);
-  }}
+  }
   
-  .card-header .btn {{
+  .card-header .btn {
     margin-right: -0.5em;
-  }}
+  }
   
-  .order-status-bar {{
+  .order-status-bar {
     /* hstack */
     display: flex;
     flex-direction: row;
     align-items: center;
     align-self: stretch;
-  }}
+  }
   
-  .order-status-bar > div {{
+  .order-status-bar > div {
     flex: 1;
     align-self: stretch;
     margin-top: -0.5em;  /* Compensate for connector bar width */
     
     text-align: center;
-  }}
+  }
   
-  .order-status-bar > div:before {{
+  .order-status-bar > div:before {
     display: block;
     height: 0.5em;
     width: 0%;
@@ -97,13 +97,13 @@
     
     background: #2b3639;  /* bg-secondary */
     content: ' ';
-  }}
+  }
   
-  .order-status-bar > div:not(:first-child):before {{
+  .order-status-bar > div:not(:first-child):before {
     width: 100%;
-  }}
+  }
   
-  .order-status-icon {{
+  .order-status-icon {
     display: inline-flex;
     width: 2em;
     height: 2em;
@@ -118,21 +118,21 @@
     color: #ffffff;  /* text-light */
     text-align: center;
     ;
-  }}
+  }
   
-  .order-status-icon svg {{
+  .order-status-icon svg {
     width: 1.5em;
     height: 1.5em;
     
     position: relative;
     left: 0.25em;
     top: 0.15em;
-  }}
+  }
   
   .order-status-active .order-status-icon,
-  .order-status-active.order-status-active:before {{
+  .order-status-active.order-status-active:before {
     background: #cccc6a;  /* bg-primary */
-  }}
+  }
 </style>
 
 </head>
@@ -188,7 +188,7 @@
             <button type="button" class="btn btn-primary btn-sm" hx-get="/containers/" hx-target="#containers"><span class="iconify" data-icon="mdi:refresh"></span></button>
           </div>
           <div id="containers" class="list-group list-group-flush">
-            {containers}
+            {% include 'containers.html' %}
           </div>
         </div>
       </div>
@@ -199,7 +199,7 @@
             <button type="button" class="btn btn-primary btn-sm" hx-get="/images/" hx-target="#images"><span class="iconify" data-icon="mdi:refresh">a</span></button>
           </div>
           <div id="images" class="list-group list-group-flush">
-            {registry_contents}
+            {% include 'images.html' %}
           </div>
         </div>
       </div>

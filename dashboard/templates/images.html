@@ -1,0 +1,13 @@
+{% for image in images %}
+  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2">
+    <div class="fs-4 font-monospace ms-2">{{ image.name }}:{{ image.tag }}</div>
+    <div>
+      <div class="lh-1">{{ '%.20s'|format(image.digest) }}</div>
+      <div class="small text-muted text-end">{{ image.created }}</div>
+    </div>
+  </div>
+{% else %}
+  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2">
+    <div class="fs-5 ms-2">No images to show</div>
+  </div>
+{% endfor %}

@@ -1,0 +1,19 @@
+{% for container in containers %}
+  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2">
+    <div>
+      <span style="width: 1em; height: 1em" class="{% if container.status == 'running' %}bg-success{% else %}bg-danger{% endif %} d-inline-block rounded-circle mx-2"></span>
+      <span class="fs-4 font-monospace">{{ container.name }}</span>
+    </div>
+    <div>
+      <div class="lh-1">{{ container.image }}</div>
+      <div class="small text-muted text-end">{{ container.created }}</div>
+    </div>
+  </div>
+{% else %}
+  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2">
+    <div>
+      <span style="width: 1em; height: 1em" class="bg-danger d-inline-block rounded-circle mx-2"></span>
+      <span class="fs-5">No containers to show</span>
+    </div>
+  </div>
+{% endfor %}
