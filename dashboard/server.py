@@ -1,11 +1,15 @@
+import random
 import os
 
 from flask import Flask, render_template
+from flask_socketio import SocketIO, emit
 
 import utils
 
 
 server = Flask(__name__)
+server.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '___')
+socket = SocketIO(server)
 
 
 @server.route('/')
@@ -38,4 +42,22 @@ def create_container_boxes() -> str:
     
     containers = utils.get_containers(os.environ.get('DOCKER_HOST', ''))
     return render_template('containers.html', containers = containers)
+
+
+@socket.on('update-trigger')
+def handle_update_trigger() -> None:
+    
+    status_list = [
+        'config-request',
+        'config-transmit',
+        'resource-request',
+        'resource-transmit',
+        'update-apply',
+        'update-complete',
+    ]
+    emit('update-status', random.choice(status_list))
+
+
+if __name__ == '__main__':
+    socket.run(server, host = '0.0.0.0', port = 8080)
 

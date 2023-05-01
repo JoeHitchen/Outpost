@@ -11,19 +11,16 @@
 
 <script src="https://unpkg.com/htmx.org@1.9.0"></script>
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 
 <script type="text/javascript">
-  function updateStatusBar() {
-    const statuses = [
-      'config-request',
-      'config-transmit',
-      'resource-request',
-      'resource-transmit',
-      'update-apply',
-      'update-complete',
-    ];
-    const status = statuses[Math.floor(Math.random()*statuses.length)];
-    
+  const socket = io();
+  
+  function triggerUpdate() {
+    socket.emit('update-trigger');
+  }
+  
+  socket.on('update-status', (status) => {
     const statusBar = document.getElementById('statusBar');
     var statusReached = false;
     for (var i = 0; i < statusBar.children.length; i++) {
@@ -35,7 +32,7 @@
       }
       if (thisElement.getAttribute('data-step') == status) statusReached = true;
     }
-  }
+  });
 </script>
 
 <style type="text/css">
@@ -180,7 +177,7 @@
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fs-4">Outpost Process</span>
-            <button type="button" class="btn btn-primary btn-sm" onclick="updateStatusBar()"><span class="iconify" data-icon="mdi:refresh"></span></button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="triggerUpdate()"><span class="iconify" data-icon="mdi:refresh"></span></button>
           </div>
           <div id="statusBar" class="card-body order-status-bar">
             <div class="order-status-active" data-step="config-request">
