@@ -170,6 +170,7 @@ services:
     restart: always
     command: celery --app=txrx worker --loglevel=info
     environment:
+      - DASHBOARD_HOST=http://dashboard.outpost:8080
       - DOCKER_HOST=txrx-dockerd.outpost:2375
       - DOCKER_BUILD_DIR=/var/build/target
       - TERRAFORM_TEMPLATE_PATH=/src/terraform
@@ -184,6 +185,7 @@ services:
       - ./target-py:/var/build/target
     networks:
       - txrx
+      - default
     depends_on:
       - txrx_messages
       - txrx_dockerd
