@@ -1,4 +1,3 @@
-import random
 import os
 
 from flask import Flask, render_template
@@ -46,16 +45,12 @@ def create_container_boxes() -> str:
 
 @socket.on('update-trigger')
 def handle_update_trigger() -> None:
-    
-    status_list = [
-        'config-request',
-        'config-transmit',
-        'resource-request',
-        'resource-transmit',
-        'update-apply',
-        'update-complete',
-    ]
-    emit('update-status', random.choice(status_list))
+    emit('internal-update-trigger', broadcast = True)
+
+
+@socket.on('internal-update-status')
+def handle_update_status(status: str) -> None:
+    emit('update-status', status, broadcast = True)
 
 
 if __name__ == '__main__':

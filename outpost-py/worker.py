@@ -1,6 +1,7 @@
 import os
 import logging
 
+import socketio
 import git
 
 import gateway
@@ -10,6 +11,8 @@ import terraform  # noqa: I100 I201  Incorrectly identified conflict with python
 logging.basicConfig(level = logging.ERROR)
 logger = logging.getLogger('Updates')
 logger.setLevel(logging.INFO)
+
+socket = socketio.Client()
 
 
 def check_for_updates(app_name, app_work_dir):
@@ -33,7 +36,10 @@ def check_for_updates(app_name, app_work_dir):
         return False
 
 
-if __name__ == '__main__':
+@socket.on('internal-update-trigger')
+def handle_update_trigger():
+    
+    socket.emit('internal-update-status', 'config-request')
     
     app_name = 'target'
     app_work_dir = os.path.join(os.environ.get('TERRAFORM_DIR'), app_name)
@@ -45,5 +51,10 @@ if __name__ == '__main__':
         False: 'Terraform will run to prevent drift',
     }[has_updates])
     terraform.apply_configuration(app_work_dir)
+    socket.emit('internal-update-status', 'update-complete')
+
+
+if __name__ == '__main__':
+    socket.connect(os.environ.get('DASHBOARD_HOST', ''))
 
 

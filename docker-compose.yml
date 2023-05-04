@@ -4,7 +4,10 @@ services:
   iac_worker:
     build: outpost-py
     image: outpost-worker
+    restart: always
+    command: python worker.py
     environment:
+      - DASHBOARD_HOST=http://dashboard.outpost:8080
       - DOCKER_HOST=dockerd.outpost:2375
       - REGISTRY_HOST=registry.outpost
       - GIT_HOST=file:///srv/git
@@ -18,6 +21,7 @@ services:
     depends_on:
       - iac_dockerd
       - iac_registry
+      - iac_dashboard
       - gateway_messages
   
   iac_dockerd:
@@ -52,6 +56,7 @@ services:
     build: dashboard
     image: outpost-dashboard
     restart: always
+    hostname: dashboard.outpost
     ports:
       - 8880:8080
     environment:

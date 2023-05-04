@@ -3,8 +3,7 @@ from collections.abc import Callable
 from typing_extensions import TypeAlias
 from flask import Flask
 
-
-OnHandler: TypeAlias = Callable[[], None]
+OnHandler: TypeAlias = Callable[..., None]
 
 
 class SocketIO():
@@ -19,6 +18,6 @@ class SocketIO():
         ...
 
 
-def emit(type: str, content: str) -> None:
+def emit(type: str, content: str = '', broadcast: bool = False) -> None:
     ...
 
