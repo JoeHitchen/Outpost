@@ -50,7 +50,7 @@ def handle_update_trigger():
         True: 'Terraform will run to apply changes',
         False: 'Terraform will run to prevent drift',
     }[has_updates])
-    terraform.apply_configuration(app_work_dir)
+    terraform.apply_configuration(app_work_dir, has_updates, socket)
     socket.emit('internal-update-status', 'update-complete')
 
 
