@@ -43,14 +43,14 @@ def create_container_boxes() -> str:
     return render_template('containers.html', containers = containers)
 
 
-@socket.on('update-trigger')
+@socket.on('update-trigger', namespace = '/public/')
 def handle_update_trigger() -> None:
-    emit('internal-update-trigger', broadcast = True)
+    emit('update-trigger', namespace = '/private/', broadcast = True)
 
 
-@socket.on('internal-update-status')
+@socket.on('update-status', namespace = '/private/')
 def handle_update_status(status: str) -> None:
-    emit('update-status', status, broadcast = True)
+    emit('update-status', status, namespace = '/public/', broadcast = True)
 
 
 if __name__ == '__main__':

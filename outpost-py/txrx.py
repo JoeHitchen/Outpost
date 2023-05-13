@@ -22,8 +22,8 @@ txrx = Celery(
 
 def sent_update_status(status):
     socket = socketio.Client()
-    socket.connect(os.environ.get('DASHBOARD_HOST', ''))
-    socket.emit('internal-update-status', status)
+    socket.connect(os.environ.get('DASHBOARD_HOST', ''), namespaces = ['/', '/private/'])
+    socket.emit('update-status', status, namespace = '/private/')
 
 
 def bump_image_version(file_path):

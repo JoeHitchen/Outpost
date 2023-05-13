@@ -70,7 +70,7 @@ def apply_configuration(app_work_dir, has_updates, socket):
         # Attempt apply
         logger.info('Apply attempt #{}'.format(count))
         if count > has_updates:
-            socket.emit('internal-update-status', 'update-apply')
+            socket.emit('update-status', 'update-apply', namespace = '/private/')
         status, stdout, stderr = tf.apply(
             var = {
                 'docker_host': os.environ.get('DOCKER_HOST'),
@@ -100,7 +100,7 @@ def apply_configuration(app_work_dir, has_updates, socket):
             missing_image = identify_missing_image(app_work_dir, stderr)
             if missing_image:
                 logger.info('Identified missing Docker image - {}'.format(missing_image))
-                socket.emit('internal-update-status', 'resource-request')
+                socket.emit('update-status', 'resource-request', namespace = '/private/')
                 gateway.request_image_transfer.delay(missing_image).wait()
                 retry = True
                 continue

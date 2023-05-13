@@ -36,10 +36,10 @@ def check_for_updates(app_name, app_work_dir):
         return False
 
 
-@socket.on('internal-update-trigger')
+@socket.on('update-trigger', namespace = '/private/')
 def handle_update_trigger():
     
-    socket.emit('internal-update-status', 'config-request')
+    socket.emit('update-status', 'config-request', namespace = '/private/')
     
     app_name = 'target'
     app_work_dir = os.path.join(os.environ.get('TERRAFORM_DIR'), app_name)
@@ -51,10 +51,10 @@ def handle_update_trigger():
         False: 'Terraform will run to prevent drift',
     }[has_updates])
     terraform.apply_configuration(app_work_dir, has_updates, socket)
-    socket.emit('internal-update-status', 'update-complete')
+    socket.emit('update-status', 'update-complete', namespace = '/private/')
 
 
 if __name__ == '__main__':
-    socket.connect(os.environ.get('DASHBOARD_HOST', ''))
+    socket.connect(os.environ.get('DASHBOARD_HOST', ''), namespaces = ['/', '/private/'])
 
 
