@@ -42,7 +42,7 @@ def identify_missing_image(app_work_dir, stderr):
     return image
 
 
-def apply_configuration(app_work_dir):
+def apply_configuration(app_work_dir, has_updates, socket):
     logger.info('Running Terraform')
     
     # Prepare Terraform
@@ -69,6 +69,8 @@ def apply_configuration(app_work_dir):
         
         # Attempt apply
         logger.info('Apply attempt #{}'.format(count))
+        if count > has_updates:
+            socket.emit('update-status', 'update-apply', namespace = '/private/')
         status, stdout, stderr = tf.apply(
             var = {
                 'docker_host': os.environ.get('DOCKER_HOST'),
@@ -98,6 +100,7 @@ def apply_configuration(app_work_dir):
             missing_image = identify_missing_image(app_work_dir, stderr)
             if missing_image:
                 logger.info('Identified missing Docker image - {}'.format(missing_image))
+                socket.emit('update-status', 'resource-request', namespace = '/private/')
                 gateway.request_image_transfer.delay(missing_image).wait()
                 retry = True
                 continue

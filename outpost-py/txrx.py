@@ -5,6 +5,7 @@ from copy import copy
 import random
 
 from celery import Celery
+import socketio
 import git
 
 import image_utils as utils
@@ -17,6 +18,12 @@ txrx = Celery(
     broker = os.environ.get('TXRX_REQUEST'),
     backend = os.environ.get('TXRX_RESPONSE'),
 )
+
+
+def sent_update_status(status):
+    socket = socketio.Client()
+    socket.connect(os.environ.get('DASHBOARD_HOST', ''), namespaces = ['/', '/private/'])
+    socket.emit('update-status', status, namespace = '/private/')
 
 
 def bump_image_version(file_path):
@@ -113,6 +120,7 @@ def _transfer_git_history(repo_name):
     # Perform transfer
     commit = repo.commit('master')
     repo.remotes.origin.push('master:master')
+    sent_update_status('config-transmit')
     return {
         'repo': repo_name,
         'branch': 'master',
@@ -139,6 +147,7 @@ def _transfer_docker_image(image_name):
     )
     
     image_meta['file'] = image_filename
+    sent_update_status('resource-transmit')
     return image_meta
 
 

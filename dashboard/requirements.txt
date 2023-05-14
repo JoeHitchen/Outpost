@@ -1,4 +1,6 @@
 flask
+flask-socketio
+gevent-websocket
 
 requests
 docker
