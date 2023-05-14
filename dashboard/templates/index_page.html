@@ -20,6 +20,10 @@
     socket.emit('update-trigger');
   }
   
+  socket.on('connect', () => {
+    socket.emit('update-status');
+  });
+  
   socket.on('update-status', (status) => {
     const statusBar = document.getElementById('statusBar');
     var statusReached = false;

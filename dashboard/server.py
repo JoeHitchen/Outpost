@@ -10,6 +10,8 @@ server = Flask(__name__)
 server.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '___')
 socket = SocketIO(server)
 
+update_status = 'update-complete'
+
 
 @server.route('/')
 def index() -> str:
@@ -48,8 +50,15 @@ def handle_update_trigger() -> None:
     emit('update-trigger', namespace = '/private/', broadcast = True)
 
 
+@socket.on('update-status', namespace = '/public/')
+def handle_update_status_public() -> None:
+    emit('update-status', update_status, broadcast = True)
+
+
 @socket.on('update-status', namespace = '/private/')
-def handle_update_status(status: str) -> None:
+def handle_update_status_private(status: str) -> None:
+    global update_status
+    update_status = status
     emit('update-status', status, namespace = '/public/', broadcast = True)
 
 
