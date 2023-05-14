@@ -47,6 +47,11 @@ def create_container_boxes() -> str:
 
 @socket.on('update-trigger', namespace = '/public/')
 def handle_update_trigger() -> None:
+    
+    if not update_status == 'update-complete':
+        print('Update already in progress')
+        return
+    
     emit('update-trigger', namespace = '/private/', broadcast = True)
 
 

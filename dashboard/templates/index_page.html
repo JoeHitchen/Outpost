@@ -16,8 +16,23 @@
 <script type="text/javascript">
   const socket = io('/public/');
   
+  function triggerButtonDisable() {
+    const button = document.getElementById('update-trigger');
+    button.classList.remove('btn-primary');
+    button.disabled = true;
+    button.classList.add('btn-secondary');
+  }
+  
+  function triggerButtonEnable() {
+    const button = document.getElementById('update-trigger');
+    button.classList.remove('btn-secondary');
+    button.disabled = false;
+    button.classList.add('btn-primary');
+  }
+  
   function triggerUpdate() {
     socket.emit('update-trigger');
+    triggerButtonDisable();
   }
   
   socket.on('connect', () => {
@@ -36,6 +51,8 @@
       }
       if (thisElement.getAttribute('data-step') == status) statusReached = true;
     }
+    if (status === 'update-complete') triggerButtonEnable()
+    else triggerButtonDisable();
   });
 </script>
 
@@ -181,7 +198,7 @@
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fs-4">Outpost Process</span>
-            <button type="button" class="btn btn-primary btn-sm" onclick="triggerUpdate()"><span class="iconify" data-icon="mdi:refresh"></span></button>
+            <button type="button" id="update-trigger" class="btn btn-primary btn-sm" onclick="triggerUpdate()"><span class="iconify" data-icon="mdi:refresh"></span></button>
           </div>
           <div id="statusBar" class="card-body order-status-bar">
             <div class="order-status-active" data-step="config-request">
